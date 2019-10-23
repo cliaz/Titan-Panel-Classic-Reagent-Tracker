@@ -309,73 +309,45 @@ function addon:BuyReagents()
     -- first up, let's fill our shopping cart
     -- for every spell we have
     for i = 1, table.getn(possessed) do
-        local itemAddedToCart = false   -- optimisation. stops the code looping through every bag slot if it's already added
-                                        -- the reagent to the shopping cart
-        local itemInBags = false
+        local totalCountOfReagent = 0
+        local desiredCountOfReagent = 0
+        if possessed[i].reagentName ~= nil then
+            _, _, _, _, _, _, _, desiredCountOfReagent = GetItemInfo(possessed[i].reagentName)    -- get the max a stack of this reagent can be
+        end                                                                                        -- just so that we buy one stack only
 
         if debug == true then 
             if possessed[i].reagentName ~= nil then
                 DEFAULT_CHAT_FRAME:AddMessage("Searching for "..possessed[i].reagentName);
             end
         end
-
+        -- First up, go add up all the units of this reagent we have
+        -- this is in case they have multiple half used stacks
         if possessed[i].reagentName ~= nil then
             -- for every bag slot
             for bagID = 0, 4 do
-                if itemInBags == true then break end -- stop looping once we've found the item in our bags
+                -- for even item slot in that bag
                 for slot = 1, GetContainerNumSlots(bagID) do
-                    
-                    if debug == true then 
-                        DEFAULT_CHAT_FRAME:AddMessage("Bag "..bagID..": Slot "..slot);
-                    end
-
-                    -- get the item name and count of each bag slot
+                    -- get the item name and quantity of each item in that slot
                     local bagItemName, bagItemCount = getItemNameItemCountFromBag(bagID, slot);
                                     
                     if bagItemName ~= nil and bagItemCount ~= nil then
                         -- if the ItemName returned from the bag slot matches a reagent we're tracking
-                        if bagItemName == possessed[i].reagentName and possessed[i].reagentName ~= nil then
-                            
-                            if debug == true then 
-                                DEFAULT_CHAT_FRAME:AddMessage("Found "..possessed[i].reagentName.." in bags");
-                            end
-
-                            itemInBags = true
-                            local _, _, _, _, _, _, _, maxReagentStackCount = GetItemInfo(bagItemName) -- get max stack count of item
-                                                                                                    -- TODO - move this to spells.lua
-                            -- if we don't have a full stack
-                            if bagItemCount < maxReagentStackCount then
-                                -- add it to a list of stuff we gotta buy, being reagentName and amount
-                                shoppingCart[tableIndex] = {bagItemName, maxReagentStackCount-bagItemCount}
-                                tableIndex = tableIndex+1   -- increment the table index so we store items to buy correctly
-                                itemAddedToCart = true
-                                if debug == true then 
-                                    DEFAULT_CHAT_FRAME:AddMessage("Added "..maxReagentStackCount-bagItemCount.." of "..possessed[i].reagentName.." to cart. Should move to next reagent now");
-                                end
-                                break -- once we've added it to cart, stop execution
-                            end
-                            if debug == true then 
-                                DEFAULT_CHAT_FRAME:AddMessage("Have full stack of "..possessed[i].reagentName..". Nothing added to shopping cart");
-                            end
-                            break   -- without this the loop continues, even though we've found a full stack of items
+                        if bagItemName == possessed[i].reagentName then
+                            totalCountOfReagent = totalCountOfReagent + bagItemCount    -- add up how many of that reagent we have
                         end
                     end
                 end
             end
-            
-            if itemInBags == false and itemAddedToCart == false then
-                -- if the code gets to here, we don't have the item in our bags - and it hasn't been added to shopping list 
-                if debug == true then 
-                    DEFAULT_CHAT_FRAME:AddMessage("Could not find "..possessed[i].reagentName.." in bags.");
-                end
-                local _, _, _, _, _, _, _, maxReagentStackCount = GetItemInfo(possessed[i].reagentName) -- get max stack count of item
-                shoppingCart[tableIndex] = {possessed[i].reagentName, maxReagentStackCount}    -- TODO move the maxReagentStackCount into the spells.lua
+            DEFAULT_CHAT_FRAME:AddMessage("Found "..totalCountOfReagent.." "..possessed[i].reagentName.." in bags");
+            if totalCountOfReagent >= desiredCountOfReagent then
+                -- we got enough not gonna buy any more
+            elseif totalCountOfReagent < desiredCountOfReagent then
+                -- we don't have enough, let's buy some more
+                shoppingCart[tableIndex] = {possessed[i].reagentName, desiredCountOfReagent-totalCountOfReagent}
                 tableIndex = tableIndex+1
-                itemAddedToCart = true
                 if debug == true then 
-                    DEFAULT_CHAT_FRAME:AddMessage("Added "..maxReagentStackCount.." of "..possessed[i].reagentName.." to cart. Should move to next reagent now");
+                    DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[i].reagentName.." to cart.");
                 end
-                
             end
         end
     end
