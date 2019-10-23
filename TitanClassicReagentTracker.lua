@@ -1,5 +1,7 @@
 local _, addon = ...
 
+local debug = true -- setting this to true will enable a lot of debug messages being output on the wow screen
+
 local playerClass = select(2, UnitClass("player"))
 
 -- load the database of reagents mapped to spells/abilities for the given playerClass
@@ -48,19 +50,30 @@ local function onUpdate(self, elapsed)
 	self:SetScript("OnUpdate", nil)
 end
 
-
+-- create a frame to handle all the things
+-- this actually seems to be what calls all the functions / logic in the addon
+-- without it, nothing works
 addon = CreateFrame("Button", "TitanPanelReagentTrackerButton", CreateFrame("Frame", nil, UIParent), "TitanPanelButtonTemplate")
 addon:SetSize(16, 16)
 addon:SetPushedTextOffset(0, 0)
--- add events to the OnEvent array so they can be tracked
+
+-- tell the addon which events from the game it should be aware of
 addon:RegisterEvent("PLAYER_LOGIN")
 addon:RegisterEvent("LEARNED_SPELL_IN_TAB")
+addon:RegisterEvent("MERCHANT_SHOW")
+
+-- tell the addon what to do on each event
 addon:SetScript("OnEvent", function(self, event, ...)
 	if event == "PLAYER_LOGIN" then
 		self:RefreshReagents()
 		self:UpdateButton()
 		TitanPanelButton_UpdateTooltip(self)
-		self:RegisterEvent("BAG_UPDATE")
+        self:RegisterEvent("BAG_UPDATE")
+    elseif event == "MERCHANT_SHOW" then    -- handle a merchant window opening. this is to autobuy reagents
+        self:BuyReagents()
+        self:UpdateButton()
+        TitanPanelButton_UpdateTooltip(self)
+        self:RegisterEvent("BAG_UPDATE")
 	else
 		-- update on next frame to prevent redundant CPU processing from event spamming
 		self.refreshReagents = event == "LEARNED_SPELL_IN_TAB"
@@ -259,29 +272,131 @@ function TitanPanelReagentTracker_GetTooltipText()
 	end
 end
 
-
-
-
---
--- handler to capture the event of opening a merchant window and call the appropriate purchasing
--- function. Need to register the event so the addon is aware of it
---
-addon.RegisterEvent("MERCHANT_SHOW")
-
-function AutoBuyReagents_OnEvent()
-    if ( event == "MERCHANT_SHOW" ) then
-        BuyReagents();
-    end
-end
-
 --
 -- function to actually buy the reagents from the vendor
+-- this will buy up to a single stack of items that are tracked as reagents for spells you know
 --
-function BuyReagents()
+function addon:BuyReagents()
+   local shoppingCart = {};    -- list of items to buy
+   tableIndex = 1 -- because LUA handles tables poorly, deciding that a table/list which has 2 sequential nil values in it
+                    -- has no values after those nils, we have to use a manual counter to correctly store items in a list
+
+
+    -- first up, let's fill our shopping cart
+    -- for every spell we have
+    for i = 1, table.getn(possessed) do
+        local itemAddedToCart = false   -- optimisation. stops the code looping through every bag slot if it's already added
+                                        -- the reagent to the shopping cart
+        local itemInBags = false
+
+        if debug == true then 
+            if possessed[i].reagentName ~= nil then
+                DEFAULT_CHAT_FRAME:AddMessage("Searching for "..possessed[i].reagentName);
+            end
+        end
+
+        if possessed[i].reagentName ~= nil then
+            -- for every bag slot
+            for bagID = 0, 4 do
+                if itemInBags == true then break end -- stop looping once we've found the item in our bags
+                for slot = 1, GetContainerNumSlots(bagID) do
+                    
+                    if debug == true then 
+                        DEFAULT_CHAT_FRAME:AddMessage("Bag "..bagID..": Slot "..slot);
+                    end
+
+                    -- get the item name and count of each bag slot
+                    local bagItemName, bagItemCount = getItemNameItemCountFromBag(bagID, slot);
+                                    
+                    if bagItemName ~= nil and bagItemCount ~= nil then
+                        -- if the ItemName returned from the bag slot matches a reagent we're tracking
+                        if bagItemName == possessed[i].reagentName and possessed[i].reagentName ~= nil then
+                            
+                            if debug == true then 
+                                DEFAULT_CHAT_FRAME:AddMessage("Found "..possessed[i].reagentName.." in bags");
+                            end
+
+                            itemInBags = true
+                            local _, _, _, _, _, _, _, maxReagentStackCount = GetItemInfo(bagItemName) -- get max stack count of item
+                                                                                                    -- TODO - move this to spells.lua
+                            -- if we don't have a full stack
+                            if bagItemCount < maxReagentStackCount then
+                                -- add it to a list of stuff we gotta buy, being reagentName and amount
+                                shoppingCart[tableIndex] = {bagItemName, maxReagentStackCount-bagItemCount}
+                                tableIndex = tableIndex+1   -- increment the table index so we store items to buy correctly
+                                itemAddedToCart = true
+                                if debug == true then 
+                                    DEFAULT_CHAT_FRAME:AddMessage("Added "..maxReagentStackCount-bagItemCount.." of "..possessed[i].reagentName.." to cart. Should move to next reagent now");
+                                end
+                                break -- once we've added it to cart, stop execution
+                            end
+                            if debug == true then 
+                                DEFAULT_CHAT_FRAME:AddMessage("Have full stack of "..possessed[i].reagentName..". Nothing added to shopping cart");
+                            end
+                            break   -- without this the loop continues, even though we've found a full stack of items
+                        end
+                    end
+                end
+            end
+            
+            if itemInBags == false and itemAddedToCart == false then
+                -- if the code gets to here, we don't have the item in our bags - and it hasn't been added to shopping list 
+                if debug == true then 
+                    DEFAULT_CHAT_FRAME:AddMessage("Could not find "..possessed[i].reagentName.." in bags.");
+                end
+                local _, _, _, _, _, _, _, maxReagentStackCount = GetItemInfo(possessed[i].reagentName) -- get max stack count of item
+                shoppingCart[tableIndex] = {possessed[i].reagentName, maxReagentStackCount}    -- TODO move the maxReagentStackCount into the spells.lua
+                tableIndex = tableIndex+1
+                itemAddedToCart = true
+                if debug == true then 
+                    DEFAULT_CHAT_FRAME:AddMessage("Added "..maxReagentStackCount.." of "..possessed[i].reagentName.." to cart. Should move to next reagent now");
+                end
+                
+            end
+        end
+    end
+ 
+    -- this is where we do the actual shopping
+    -- at this point, shoppingCart looks like this:
+    -- shoppingCart[x][1] = the reagent name
+    -- shoppingCart[x][2] = how many reagents to buy
+    
+    local purchasingMessage = false;
+
+    -- for each item in shoppingCart
+    for i = 1, table.getn(shoppingCart) do
+    -- check for each of the merchant's items to see if it's what we want
+        for index = 0, GetMerchantNumItems() do
+            local name, texture, price, quantity = GetMerchantItemInfo(index)
+            -- if the merchant's item name matches the name of the item in the shopping cart
+            if name == shoppingCart[i][1] then
+                -- buy the item that we're currently looking at, and the amount that's in the shoppingCart
+                BuyMerchantItem(index, shoppingCart[i][2])
+                -- tell the user we're bought stuff for them
+                if purchasingMessage ~= true then
+                    DEFAULT_CHAT_FRAME:AddMessage("|cffffff00<TitanPanelReagents> Extra reagents bought.|r");        
+                    purchasingMessage = true    -- only want to tell them once 
+                end
+            end
+		end
+	end	
 end
 
---
--- function to check bags for how many reagents are there
--- 
-function GetReagentCount()
+
+-- getting passed bag1:slot1, bag1:2, 1:3, etc.
+function getItemNameItemCountFromBag(bag, item)    
+    -- get the count and link of the item in this bag slot
+    local _, itemCount, _, _, _, _, itemLink = GetContainerItemInfo(bag, item);
+    local itemName
+    
+    -- if an item is actually there, get the name of the item, instead of the link
+    if itemCount ~= nil and itemLink ~= nil then 
+        itemName = GetItemInfo(itemLink)
+    end
+    
+	if itemName ~= nil then
+		return itemName, itemCount;
+	else
+		return "", itemCount;
+	end
 end
