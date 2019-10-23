@@ -1,6 +1,6 @@
 local _, addon = ...
 
-local debug = true -- setting this to true will enable a lot of debug messages being output on the wow screen
+local debug = false -- setting this to true will enable a lot of debug messages being output on the wow screen
 
 local playerClass = select(2, UnitClass("player"))
 
