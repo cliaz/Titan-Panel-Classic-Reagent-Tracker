@@ -76,19 +76,21 @@ addon.label = text
 
 
 addon.registry = {
-	id = TITAN_REAGENTTRACKER_ID,
-	version = GetAddOnMetadata("TitanReagentTracker", "Version"),
+    id = TITAN_REAGENTTRACKER_ID,
+	version = GetAddOnMetadata("TitanReagentTracker", "Version"),   -- the the value of Version variable from the .toc
 	menuText = "Reagent Tracker",
 	tooltipTitle = "Reagent Tracker Info", 
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
 	savedVariables = {
-		ShowSpellIcons = false,
+		ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
 	}
 }
 
 
+--
+-- create a button for every spell / reagent in the spell array
+-- also create a list in the possessed array, which we'll use to store reagent information later
 local buttons = {}
-
 for i = 1, #spells do
 	buttons[i] = newReagent(addon, i)
 	addon.registry.savedVariables["TrackReagent"..i] = (i == 1)
@@ -110,11 +112,13 @@ end)
 function addon:RefreshReagents()
 	for p_index, buff in ipairs(spells) do
 		local possessed = possessed[p_index]
-		wipe(possessed)
+        wipe(possessed) -- wtf is this doing? Potentially remove, but haven't fully tested.
+        
+        -- for every spell, get the reagent info
 		for index, spell in ipairs(buff.spells) do
 			local reagentID = buff.reagent
 			local reagentName = GetItemInfo(reagentID)
-			if not reagentName then
+            if not reagentName then
 				queryTooltip:SetHyperlink("item:"..reagentID)
 			return
 			end
@@ -136,7 +140,10 @@ function addon:RefreshReagents()
 end
 
 
-
+--
+-- function which checks if any reagents are being tracked, and if so, generates the icon / text / values to be shown
+-- in the titan panel window. if no reagents tracked, hides all buttons
+--
 function addon:UpdateButton()
 	local tracking
 	local totalWidth = 0
@@ -147,8 +154,10 @@ function addon:UpdateButton()
 		local nextAnchor = "LEFT"
 		local nextOffset = 0
 
-		-- show/hide reagent trackers
-		if buff.reagentName and not buff.disabled and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..i) then
+        -- show/hide reagent trackers
+        -- pretty sure "and not buff.disabled" is never set. Can refactor this out
+        --if buff.reagentName and not buff.disabled and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..i) then
+		if buff.reagentName and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..i) then
 			local icon = button.icon
 			button:Show()
 			-- display spell or reagent icon
@@ -160,17 +169,21 @@ function addon:UpdateButton()
 			
 			-- current number of reagents
 			button:SetText(GetItemCount(buff.reagentName))
-			
+            
+            -- if there is another spell / button left in the array, change the anchor position for it and set 
+            -- an appropriate offset
 			if nextButton then
 				nextAnchor = "RIGHT"
 				nextOffset = 6
 			end
 			
-			button:SetWidth(icon:GetWidth() + button:GetTextWidth())
-			totalWidth = totalWidth + button:GetWidth()
+            button:SetWidth(icon:GetWidth() + button:GetTextWidth())    -- set the button width based off of
+                                                                        -- icon size and text size. 
+			totalWidth = totalWidth + button:GetWidth() -- add up all widths of buttons
 			
-			offset = offset + 1
-			tracking = true
+            offset = offset + 1 -- without this, the titan panel segment for this addon becomes too small, and the next 
+                                -- titan panel segment encroaches onto this addon
+			tracking = true -- tell the 
 		else
 			button:Hide()
 		end
@@ -181,7 +194,7 @@ function addon:UpdateButton()
 		end
 	end
 	
-	-- show label if no tracking is enabled
+    -- show addon label (Reagent Tracker) if no tracking is enabled
 	local none = self.label
 	if tracking then
 		none:Hide()
@@ -194,13 +207,14 @@ function addon:UpdateButton()
 	self:SetWidth(totalWidth + ((offset - 1) * 8))
 end
 
-
 function addon:ToggleVar(var_id)
 	TitanToggleVar(TITAN_REAGENTTRACKER_ID, var_id)
 	addon:UpdateButton()
 end
 
-
+--
+-- function that creates the values to be displayed in the right click -> drop down menu of the addon
+--
 function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 	TitanPanelRightClickMenu_AddTitle(TitanPlugins[TITAN_REAGENTTRACKER_ID].menuText)
 	
@@ -212,7 +226,7 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 			info.text = "Track "..reagent
 			info.value = "TrackReagent"..index
 			info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index)
-			info.disabled = buff.disabled
+            info.disabled = buff.disabled   -- pretty sure "and not buff.disabled" is never set. Can refactor this out
 			info.keepShownOnClick = 1
 			info.func = function()
 				TitanToggleVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index);
@@ -235,18 +249,28 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 	TitanPanelRightClickMenu_AddCommand("Hide", TITAN_REAGENTTRACKER_ID, TITAN_PANEL_MENU_FUNC_HIDE);
 
 end
+
+--
+-- function that simply toggles between showing spell icons, and reagent icons
+--
 function TitanPanelReagentTrackerSpellIcon_Toggle()
 	TitanToggleVar(TITAN_REAGENTTRACKER_ID, "ShowSpellIcons")
 	addon:UpdateButton()
 end
 
+--
+-- function that generates a mouseover text with a summary of all the tracked reagents, and their amounts
+-- when the mouse is over the titan panel section where Reagent Tracker is
+--
 function TitanPanelReagentTracker_GetTooltipText()
 	local tooltipText = " "
 	
-	-- reagent info in tooltip
+	-- generate the reagent name and count for info in tooltip
 	for index, buff in ipairs(possessed) do
-		local reagent = buff.reagentName
-		if reagent and not buff.disabled and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index) then
+        local reagent = buff.reagentName
+        -- pretty sure "and not buff.disabled" is never set. Can refactor this out
+        --if reagent and not buff.disabled and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index) then
+		if reagent and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index) then
 			tooltipText = format("%s\n%s\t%s", tooltipText, reagent, GetItemCount(reagent))
 		end
 	end
