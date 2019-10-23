@@ -52,6 +52,7 @@ end
 addon = CreateFrame("Button", "TitanPanelReagentTrackerButton", CreateFrame("Frame", nil, UIParent), "TitanPanelButtonTemplate")
 addon:SetSize(16, 16)
 addon:SetPushedTextOffset(0, 0)
+-- add events to the OnEvent array so they can be tracked
 addon:RegisterEvent("PLAYER_LOGIN")
 addon:RegisterEvent("LEARNED_SPELL_IN_TAB")
 addon:SetScript("OnEvent", function(self, event, ...)
@@ -280,4 +281,31 @@ function TitanPanelReagentTracker_GetTooltipText()
 	else
 		return " \nNo reagents tracked for known spells."
 	end
+end
+
+
+
+
+--
+-- handler to capture the event of opening a merchant window and call the appropriate purchasing
+-- function. Need to register the event so the addon is aware of it
+--
+addon.RegisterEvent("MERCHANT_SHOW")
+
+function AutoBuyReagents_OnEvent()
+    if ( event == "MERCHANT_SHOW" ) then
+        BuyReagents();
+    end
+end
+
+--
+-- function to actually buy the reagents from the vendor
+--
+function BuyReagents()
+end
+
+--
+-- function to check bags for how many reagents are there
+-- 
+function GetReagentCount()
 end
