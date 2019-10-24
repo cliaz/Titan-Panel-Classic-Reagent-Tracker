@@ -1,23 +1,22 @@
 local _, addon = ...
 
-local debug = false -- setting this to true will enable a lot of debug messages being output on the wow screen
-
+-- define variables
+-- note: look at addon.registry to see variables saved between restarts
+local debug = true -- setting this to true will enable a lot of debug messages being output on the wow screen
 local playerClass = select(2, UnitClass("player"))
+local possessed = {}    -- store spells that the player knows here
 
--- load the database of reagents mapped to spells/abilities for the given playerClass
-local spells = addon.spells[playerClass]
+local spells = addon.spells[playerClass]    -- generate a list of all possible spells that a player's Class can know, and associated reagents
+if not spells then return end   -- don't continue addon load if there are no reagents associated to our character class
 
--- don't load if there are no reagents associated to our character class
-if not spells then return end
 
 TITAN_REAGENTTRACKER_ID = "ReagentTracker"
-
 local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)
 local _G = getfenv(0);
--- store spells that are known here later
-local possessed = {}
 
-
+--
+-- create a new button for each reagent
+--
 local function newReagent(parent, i)
 	
 	local btn = CreateFrame("Button", "TitanPanelReagentTrackerReagent"..i, parent, "TitanPanelChildButtonTemplate")
@@ -51,7 +50,7 @@ local function onUpdate(self, elapsed)
 end
 
 -- create a frame to handle all the things
--- this actually seems to be what calls all the functions / logic in the addon
+-- this actually seems to be what drives the functions / logic in the addon
 -- without it, nothing works
 addon = CreateFrame("Button", "TitanPanelReagentTrackerButton", CreateFrame("Frame", nil, UIParent), "TitanPanelButtonTemplate")
 addon:SetSize(16, 16)
@@ -64,16 +63,18 @@ addon:RegisterEvent("MERCHANT_SHOW")
 
 -- tell the addon what to do on each event
 addon:SetScript("OnEvent", function(self, event, ...)
-	if event == "PLAYER_LOGIN" then
+    if event == "PLAYER_LOGIN" then
 		self:RefreshReagents()
 		self:UpdateButton()
 		TitanPanelButton_UpdateTooltip(self)
         self:RegisterEvent("BAG_UPDATE")
     elseif event == "MERCHANT_SHOW" then    -- handle a merchant window opening. this is to autobuy reagents
-        self:BuyReagents()
-        self:UpdateButton()
-        TitanPanelButton_UpdateTooltip(self)
-        self:RegisterEvent("BAG_UPDATE")
+        if TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy") then
+            self:BuyReagents()
+            self:UpdateButton()
+            TitanPanelButton_UpdateTooltip(self)
+            self:RegisterEvent("BAG_UPDATE")
+        end
 	else
 		-- update on next frame to prevent redundant CPU processing from event spamming
 		self.refreshReagents = event == "LEARNED_SPELL_IN_TAB"
@@ -97,13 +98,16 @@ addon.registry = {
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
 	savedVariables = {
 		ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
+        AutoBuy = false, -- variable used throughout the addon to determine whether or not to autobuy reagents
 	}
 }
 
 
 --
--- create a button for every spell / reagent in the spell array
+-- create a button for every spell / reagent in the spell array, to be shown in titan panel horizontally
+-- Save these buttons and their settings in titan variables so that they persist across relaunch
 -- also create a list in the possessed array, which we'll use to store reagent information later
+--
 local buttons = {}
 for i = 1, #spells do
 	buttons[i] = newReagent(addon, i)
@@ -221,6 +225,7 @@ function addon:UpdateButton()
 	self:SetWidth(totalWidth + ((offset - 1) * 8))
 end
 
+-- this isn't ever called
 function addon:ToggleVar(var_id)
 	TitanToggleVar(TITAN_REAGENTTRACKER_ID, var_id)
 	addon:UpdateButton()
@@ -243,18 +248,33 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
             info.disabled = buff.disabled   -- pretty sure "and not buff.disabled" is never set. Can refactor this out
 			info.keepShownOnClick = 1
 			info.func = function()
-				TitanToggleVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index);
+                TitanToggleVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index); -- just a note on TitanToggleVar. It 'toggles' the variable
+                                                                                -- between '1' and '', instead of true/false. Can be problematic
 				addon:UpdateButton();
 			end
 			L_UIDropDownMenu_AddButton(info);
 		end
 	end
 
-	TitanPanelRightClickMenu_AddSpacer()
 
+    TitanPanelRightClickMenu_AddSpacer()
+    -- add the autobuy toggle button
+    info.text = "Autobuy reagents"
+    info.value = "AutoBuy"
+    info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy")
+    info.keepShownOnClick = 1
+    info.func = function()
+        TitanToggleVar(TITAN_REAGENTTRACKER_ID, "AutoBuy");
+        addon:UpdateButton();
+    end
+    L_UIDropDownMenu_AddButton(info);
+    wipe(info)
+
+
+    -- if we're currently showing spell icons, display the "show reagent icons" text
 	if TitanGetVar(TITAN_REAGENTTRACKER_ID, "ShowSpellIcons") then
 		TitanPanelRightClickMenu_AddCommand("Show Reagent Icons", TITAN_REAGENTTRACKER_ID,"TitanPanelReagentTrackerSpellIcon_Toggle");
-	else
+	else    -- if not, display "show spell icons" text
 		TitanPanelRightClickMenu_AddCommand("Show Spell Icons", TITAN_REAGENTTRACKER_ID,"TitanPanelReagentTrackerSpellIcon_Toggle");
 	end
 
@@ -338,16 +358,14 @@ function addon:BuyReagents()
                     end
                 end
             end
-            DEFAULT_CHAT_FRAME:AddMessage("Found "..totalCountOfReagent.." "..possessed[i].reagentName.." in bags");
+            if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Found "..totalCountOfReagent.." "..possessed[i].reagentName.." in bags") end 
             if totalCountOfReagent >= desiredCountOfReagent then
                 -- we got enough not gonna buy any more
             elseif totalCountOfReagent < desiredCountOfReagent then
                 -- we don't have enough, let's buy some more
                 shoppingCart[tableIndex] = {possessed[i].reagentName, desiredCountOfReagent-totalCountOfReagent}
                 tableIndex = tableIndex+1
-                if debug == true then 
-                    DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[i].reagentName.." to cart.");
-                end
+                if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[i].reagentName.." to cart.") end
             end
         end
     end
