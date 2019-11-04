@@ -140,12 +140,8 @@ function addon:RefreshReagents()
 				queryTooltip:SetHyperlink("item:"..reagentID)
 			return
 			end
-			-- add this spell to our "known spells" table
-			-- if this reagent is already tracked through another spell, we'll want to hide it -- nope, no longer the case
-			-- also hide it if we don't know the spell in question, since there's no real point tracking reagents in that case
-            
-            -- changed the logic from negative to positive, aka if we know the spell, track the reagent. None of this
-            -- track and then remove if already tracked stuff. The way this works now is that it only loads reagents for 
+			
+            -- if we know the spell, track the reagent. The way this works is that it only loads reagents for 
             -- spells that you know into the tracking table, and as you learn more it shows more. The old implementation 
             -- would load all possible ones, and grey out ones that you didn't know yet.
 			if IsSpellKnown(spell) then
@@ -173,8 +169,6 @@ function addon:UpdateButton()
 		local nextOffset = 0
 
         -- show/hide reagent trackers
-        -- pretty sure "and not buff.disabled" is never set. Can refactor this out
-        --if buff.reagentName and not buff.disabled and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..i) then
 		if buff.reagentName and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..i) then
 			local icon = button.icon
 			button:Show()
@@ -201,7 +195,7 @@ function addon:UpdateButton()
 			
             offset = offset + 1 -- without this, the titan panel segment for this addon becomes too small, and the next 
                                 -- titan panel segment encroaches onto this addon
-			tracking = true -- tell the 
+			tracking = true
 		else
 			button:Hide()
 		end
@@ -225,12 +219,6 @@ function addon:UpdateButton()
 	self:SetWidth(totalWidth + ((offset - 1) * 8))
 end
 
--- this isn't ever called
-function addon:ToggleVar(var_id)
-	TitanToggleVar(TITAN_REAGENTTRACKER_ID, var_id)
-	addon:UpdateButton()
-end
-
 --
 -- function that creates the values to be displayed in the right click -> drop down menu of the addon
 --
@@ -245,7 +233,6 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 			info.text = "Track "..reagent
 			info.value = "TrackReagent"..index
 			info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index)
-            info.disabled = buff.disabled   -- pretty sure "and not buff.disabled" is never set. Can refactor this out
 			info.keepShownOnClick = 1
 			info.func = function()
                 TitanToggleVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index); -- just a note on TitanToggleVar. It 'toggles' the variable
@@ -302,8 +289,6 @@ function TitanPanelReagentTracker_GetTooltipText()
 	-- generate the reagent name and count for info in tooltip
 	for index, buff in ipairs(possessed) do
         local reagent = buff.reagentName
-        -- pretty sure "and not buff.disabled" is never set. Can refactor this out
-        --if reagent and not buff.disabled and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index) then
 		if reagent and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index) then
 			tooltipText = format("%s\n%s\t%s", tooltipText, reagent, GetItemCount(reagent))
 		end
