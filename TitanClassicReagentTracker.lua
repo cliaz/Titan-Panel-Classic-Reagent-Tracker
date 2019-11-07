@@ -307,7 +307,7 @@ end
 --
 function addon:BuyReagents()
    local shoppingCart = {};    -- list of items to buy
-   tableIndex = 1 -- because LUA handles tables poorly, deciding that a table/list which has 2 sequential nil values in it
+   local tableIndex = 1 -- because LUA handles tables poorly, deciding that a table/list which has 2 sequential nil values in it
                     -- has no values after those nils, we have to use a manual counter to correctly store items in a list
 
 
@@ -317,6 +317,8 @@ function addon:BuyReagents()
         local totalCountOfReagent = 0
         local desiredCountOfReagent = 0
         if possessed[i].reagentName ~= nil then
+            -- the 8th variable returned by GetItemInfo() is the itemStackCount; the max an item will stack to
+            -- it should never be nil
             _, _, _, _, _, _, _, desiredCountOfReagent = GetItemInfo(possessed[i].reagentName)    -- get the max a stack of this reagent can be
         end                                                                                        -- just so that we buy one stack only
 
@@ -344,13 +346,17 @@ function addon:BuyReagents()
                 end
             end
             if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Found "..totalCountOfReagent.." "..possessed[i].reagentName.." in bags") end 
-            if totalCountOfReagent >= desiredCountOfReagent then
-                -- we got enough not gonna buy any more
-            elseif totalCountOfReagent < desiredCountOfReagent then
-                -- we don't have enough, let's buy some more
-                shoppingCart[tableIndex] = {possessed[i].reagentName, desiredCountOfReagent-totalCountOfReagent}
-                tableIndex = tableIndex+1
-                if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[i].reagentName.." to cart.") end
+            -- enclosing the entire reagent count vs desired reagent comparison in a not-nil if statement for Nihlolino's reported bug
+            -- this shouldn't need to exist. a reagent can't stack to nil. 
+            if totalCountOfReagent ~= nil and desiredCountOfReagent ~= nil then
+                if totalCountOfReagent >= desiredCountOfReagent then
+                    -- we got enough not gonna buy any more
+                elseif totalCountOfReagent < desiredCountOfReagent then
+                    -- we don't have enough, let's buy some more
+                    shoppingCart[tableIndex] = {possessed[i].reagentName, desiredCountOfReagent-totalCountOfReagent}
+                    tableIndex = tableIndex+1
+                    if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[i].reagentName.." to cart.") end
+                end
             end
         end
     end
