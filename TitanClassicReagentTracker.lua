@@ -3,6 +3,7 @@ local _, addon = ...
 -- define variables
 -- note: look at addon.registry to see variables saved between restarts
 local debug = true -- setting this to true will enable a lot of debug messages being output on the wow screen
+local printPurchasingMessages = false
 local playerClass = select(2, UnitClass("player"))
 local possessed = {}    -- store spells that the player knows here
 
@@ -366,7 +367,7 @@ function addon:BuyReagents()
     -- shoppingCart[x][1] = the reagent name
     -- shoppingCart[x][2] = how many reagents to buy
     
-    local purchasingMessage = false;
+    local messagedPrinted = false;
 
     -- for each item in shoppingCart
     for i = 1, table.getn(shoppingCart) do
@@ -377,10 +378,14 @@ function addon:BuyReagents()
             if name == shoppingCart[i][1] then
                 -- buy the item that we're currently looking at, and the amount that's in the shoppingCart
                 BuyMerchantItem(index, shoppingCart[i][2])
-                -- tell the user we're bought stuff for them
-                if purchasingMessage ~= true then
-                    DEFAULT_CHAT_FRAME:AddMessage("|cffffff00<TitanPanelReagents> Extra reagents bought.|r");        
-                    purchasingMessage = true    -- only want to tell them once 
+                -- if the user has enabled printing messages about purchasing reagents
+                -- TODO: messages are disabled at the moment, need to give users option to enabled / disable
+                if printPurchasingMessages == true then 
+                    -- tell the user we're bought stuff for them
+                    if messagedPrinted ~= true then
+                        DEFAULT_CHAT_FRAME:AddMessage("|cffffff00<TitanPanelReagents> Extra reagents bought.|r");        
+                        messagedPrinted = true    -- only want to tell them once 
+                    end
                 end
             end
 		end
