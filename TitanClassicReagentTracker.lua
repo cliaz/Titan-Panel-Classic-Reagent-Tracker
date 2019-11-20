@@ -2,8 +2,8 @@ local _, addon = ...
 
 -- define variables
 -- note: look at addon.registry to see variables saved between restarts
-local debug = true -- setting this to true will enable a lot of debug messages being output on the wow screen
-local printPurchasingMessages = false
+local debug = false -- setting this to true will enable a lot of debug messages being output on the wow screen
+local printPurchasingMessages = false   -- TODO: move this to addon.registry stored variables
 local playerClass = select(2, UnitClass("player"))
 local possessed = {}    -- store spells that the player knows here
 
