@@ -247,6 +247,7 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 
     TitanPanelRightClickMenu_AddSpacer()
     -- add the autobuy toggle button
+    -- TODO: change this to be a button per reagent
     info.text = "Autobuy reagents"
     info.value = "AutoBuy"
     info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy")
