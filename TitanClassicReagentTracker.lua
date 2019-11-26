@@ -372,25 +372,37 @@ function addon:BuyReagents()
 
     -- for each item in shoppingCart
     for i = 1, table.getn(shoppingCart) do
-    -- check for each of the merchant's items to see if it's what we want
-        for index = 0, GetMerchantNumItems() do
-            local name, texture, price, quantity = GetMerchantItemInfo(index)
-            -- if the merchant's item name matches the name of the item in the shopping cart
-            if name == shoppingCart[i][1] then
-                -- buy the item that we're currently looking at, and the amount that's in the shoppingCart
-                BuyMerchantItem(index, shoppingCart[i][2])
-                -- if the user has enabled printing messages about purchasing reagents
-                -- TODO: messages are disabled at the moment, need to give users option to enabled / disable
-                if printPurchasingMessages == true then 
-                    -- tell the user we're bought stuff for them
-                    if messagedPrinted ~= true then
-                        DEFAULT_CHAT_FRAME:AddMessage("|cffffff00<TitanPanelReagents> Extra reagents bought.|r");        
-                        messagedPrinted = true    -- only want to tell them once 
-                    end
+        -- pass the Reagent name and the required count to the buying function
+        if shoppingCart[i][1] ~= nil and shoppingCart[i][2] ~= nil then
+            buyItemFromVendor(shoppingCart[i][1], shoppingCart[i][2])
+            -- if the user has enabled printing messages about purchasing reagents
+            -- TODO: messages are disabled at the moment, need to give users option to enabled / disable
+            if printPurchasingMessages == true then 
+                -- tell the user we're bought stuff for them
+                if messagedPrinted ~= true then
+                    DEFAULT_CHAT_FRAME:AddMessage("|cffffff00<TitanPanelReagents> Extra reagents bought.|r");        
+                    messagedPrinted = true    -- only want to tell them once 
                 end
             end
-		end
+        end
 	end	
+end
+
+--
+-- Buy a quantity of an item from a vendor
+-- the logic is a inelegant: iterate through every item the vendor has, compare it to what we want, 
+-- and if it matches buy the desired amount
+--
+function buyItemFromVendor(itemName, purchaseCount)
+    -- check for each of the merchant's items to see if it's what we want
+    for index = 0, GetMerchantNumItems() do
+        local name, texture, price, quantity = GetMerchantItemInfo(index)
+        -- if the merchant's item name matches the name of the item in the shopping cart
+        if name == itemName then
+            -- buy the item that we're currently looking at, and the amount
+            BuyMerchantItem(index, purchaseCount)
+        end
+    end
 end
 
 
