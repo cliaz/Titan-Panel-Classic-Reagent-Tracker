@@ -1,19 +1,32 @@
-local _, addon = ...
+-- **************************************************************************
+-- * TitanBag.lua
+-- *
+-- * By: TitanMod, Dark Imakuni, Adsertor and the Titan Panel Development Team
+-- **************************************************************************
 
--- define variables
--- note: look at addon.registry to see variables saved between restarts
+-- ******************************** Constants *******************************
+local _G = getfenv(0);
+local TITAN_REAGENTTRACKER_ID = "ReagentTracker"
+--local updateTable = {TITAN_BAG_ID, TITAN_PANEL_UPDATE_BUTTON};
+-- ******************************** Variables *******************************
+local L = LibStub("AceLocale-3.0"):GetLocale("TitanClassic", true)
+--local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)
+--local AceTimer = LibStub("AceTimer-3.0")
+--local BagTimer
 local debug = false -- setting this to true will enable a lot of debug messages being output on the wow screen
 local printPurchasingMessages = false   -- TODO: move this to addon.registry stored variables
 local playerClass = select(2, UnitClass("player"))
 local possessed = {}    -- store spells that the player knows here
+-- note: look at addon.registry to see variables saved between restarts
+
+local _, addon = ...
 
 local spells = addon.spells[playerClass]    -- generate a list of all possible spells that a player's Class can know, and associated reagents
 if not spells then return end   -- don't continue addon load if there are no reagents associated to our character class
+-- ******************************** Functions *******************************
 
 
-TITAN_REAGENTTRACKER_ID = "ReagentTracker"
-local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)
-local _G = getfenv(0);
+
 
 --
 -- create a new button for each reagent
@@ -70,12 +83,12 @@ addon:SetScript("OnEvent", function(self, event, ...)
 		TitanPanelButton_UpdateTooltip(self)
         self:RegisterEvent("BAG_UPDATE")
     elseif event == "MERCHANT_SHOW" then    -- handle a merchant window opening. this is to autobuy reagents
-        if TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy") then
+        --if TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy") then --TODO
             self:BuyReagents()
             self:UpdateButton()
             TitanPanelButton_UpdateTooltip(self)
             self:RegisterEvent("BAG_UPDATE")
-        end
+        --end
 	else
 		-- update on next frame to prevent redundant CPU processing from event spamming
 		self.refreshReagents = event == "LEARNED_SPELL_IN_TAB"
@@ -99,7 +112,7 @@ addon.registry = {
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
 	savedVariables = {
 		ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
-        AutoBuy = false, -- variable used throughout the addon to determine whether or not to autobuy reagents
+        --AutoBuy = false, -- variable used throughout the addon to determine whether or not to autobuy reagents TODO
 	}
 }
 
@@ -224,11 +237,46 @@ end
 -- function that creates the values to be displayed in the right click -> drop down menu of the addon
 --
 function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
-	TitanPanelRightClickMenu_AddTitle(TitanPlugins[TITAN_REAGENTTRACKER_ID].menuText)
+    local info
+	-- level 2
+	if _G["L_UIDROPDOWNMENU_MENU_LEVEL"] == 2 then
+		if _G["L_UIDROPDOWNMENU_MENU_VALUE"] == "Autobuy Options" then
+			TitanPanelRightClickMenu_AddTitle(L["TITAN_PANEL_OPTIONS"], _G["L_UIDROPDOWNMENU_MENU_LEVEL"])
+            
+            for index, buff in ipairs(possessed) do
+                info = {};
+                local reagent = buff.reagentName
+                if reagent then
+                    info.text = "Buy "..reagent
+                    info.value = "Autobuy"..index
+                    info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Autobuy"..index)
+                    info.keepShownOnClick = 1
+                    info.func = function()
+                        TitanToggleVar(TITAN_REAGENTTRACKER_ID, "Autobuy"..index); -- just a note on TitanToggleVar. It 'toggles' the variable
+                                                                                        -- between '1' and '', instead of true/false. Can be problematic
+                        addon:UpdateButton();
+                    end
+                    L_UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+                end
+            end
+		end
+		return
+	end
 	
-	local info = {}
+	-- level 1
+    TitanPanelRightClickMenu_AddTitle(TitanPlugins[TITAN_REAGENTTRACKER_ID].menuText)
+	
+    info = {};
+	info.notCheckable = true
+	info.text = "Autobuy Options";
+	info.value = "Autobuy Options";
+	info.hasArrow = 1;
+    L_UIDropDownMenu_AddButton(info);
+    TitanPanelRightClickMenu_AddSpacer();
+    
 	-- add menu entry for each possessed spell
-	for index, buff in ipairs(possessed) do
+    for index, buff in ipairs(possessed) do
+        info = {};
 		local reagent = buff.reagentName
 		if reagent then
 			info.text = "Track "..reagent
@@ -240,7 +288,7 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
                                                                                 -- between '1' and '', instead of true/false. Can be problematic
 				addon:UpdateButton();
 			end
-			L_UIDropDownMenu_AddButton(info);
+            L_UIDropDownMenu_AddButton(info);
 		end
 	end
 
@@ -248,7 +296,8 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
     TitanPanelRightClickMenu_AddSpacer()
     -- add the autobuy toggle button
     -- TODO: change this to be a button per reagent
-    info.text = "Autobuy reagents"
+    --[[
+        info.text = "Autobuy reagents"
     info.value = "AutoBuy"
     info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy")
     info.keepShownOnClick = 1
@@ -258,6 +307,7 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
     end
     L_UIDropDownMenu_AddButton(info);
     wipe(info)
+    ]]--
 
 
     -- if we're currently showing spell icons, display the "show reagent icons" text
@@ -312,52 +362,56 @@ function addon:BuyReagents()
    local tableIndex = 1 -- because LUA handles tables poorly, deciding that a table/list which has 2 sequential nil values in it
                     -- has no values after those nils, we have to use a manual counter to correctly store items in a list
 
-
     -- first up, let's fill our shopping cart
     -- for every spell we have
-    for i = 1, table.getn(possessed) do
-        local totalCountOfReagent = 0
-        local desiredCountOfReagent = 0
-        if possessed[i].reagentName ~= nil then
-            -- the 8th variable returned by GetItemInfo() is the itemStackCount; the max an item will stack to
-            -- it should never be nil
-            _, _, _, _, _, _, _, desiredCountOfReagent = GetItemInfo(possessed[i].reagentName)    -- get the max a stack of this reagent can be
-        end                                                                                        -- just so that we buy one stack only
+    --for i = 1, table.getn(possessed) do
+    for i, buff in ipairs(possessed) do
+        -- if the option is set to autobuy the reagent for this spell
+        if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Autobuy"..i) == 1 then
 
-        if debug == true then 
-            if possessed[i].reagentName ~= nil then
-                DEFAULT_CHAT_FRAME:AddMessage("Searching for "..possessed[i].reagentName);
+            local totalCountOfReagent = 0
+            local desiredCountOfReagent = 0
+            if buff.reagentName ~= nil then
+                -- the 8th variable returned by GetItemInfo() is the itemStackCount; the max an item will stack to
+                -- it should never be nil
+                _, _, _, _, _, _, _, desiredCountOfReagent = GetItemInfo(buff.reagentName)    -- get the max a stack of this reagent can be
+            end                                                                                        -- just so that we buy one stack only
+
+            if debug == true then 
+                if buff.reagentName ~= nil then
+                    DEFAULT_CHAT_FRAME:AddMessage("Searching for "..buff.reagentName);
+                end
             end
-        end
-        -- First up, go add up all the units of this reagent we have
-        -- this is in case they have multiple half used stacks
-        if possessed[i].reagentName ~= nil then
-            -- for every bag slot
-            for bagID = 0, 4 do
-                -- for even item slot in that bag
-                for slot = 1, GetContainerNumSlots(bagID) do
-                    -- get the item name and quantity of each item in that slot
-                    local bagItemName, bagItemCount = getItemNameItemCountFromBag(bagID, slot);
-                                    
-                    if bagItemName ~= nil and bagItemCount ~= nil then
-                        -- if the ItemName returned from the bag slot matches a reagent we're tracking
-                        if bagItemName == possessed[i].reagentName then
-                            totalCountOfReagent = totalCountOfReagent + bagItemCount    -- add up how many of that reagent we have
+            -- First up, go add up all the units of this reagent we have
+            -- this is in case they have multiple half used stacks
+            if buff.reagentName ~= nil then
+                -- for every bag slot
+                for bagID = 0, 4 do
+                    -- for even item slot in that bag
+                    for slot = 1, GetContainerNumSlots(bagID) do
+                        -- get the item name and quantity of each item in that slot
+                        local bagItemName, bagItemCount = getItemNameItemCountFromBag(bagID, slot);
+                                        
+                        if bagItemName ~= nil and bagItemCount ~= nil then
+                            -- if the ItemName returned from the bag slot matches a reagent we're tracking
+                            if bagItemName == buff.reagentName then
+                                totalCountOfReagent = totalCountOfReagent + bagItemCount    -- add up how many of that reagent we have
+                            end
                         end
                     end
                 end
-            end
-            if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Found "..totalCountOfReagent.." "..possessed[i].reagentName.." in bags") end 
-            -- enclosing the entire reagent count vs desired reagent comparison in a not-nil if statement for Nihlolino's reported bug
-            -- this shouldn't need to exist. a reagent can't stack to nil. 
-            if totalCountOfReagent ~= nil and desiredCountOfReagent ~= nil then
-                if totalCountOfReagent >= desiredCountOfReagent then
-                    -- we got enough not gonna buy any more
-                elseif totalCountOfReagent < desiredCountOfReagent then
-                    -- we don't have enough, let's buy some more
-                    shoppingCart[tableIndex] = {possessed[i].reagentName, desiredCountOfReagent-totalCountOfReagent}
-                    tableIndex = tableIndex+1
-                    if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[i].reagentName.." to cart.") end
+                if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Found "..totalCountOfReagent.." "..buff.reagentName.." in bags") end 
+                -- enclosing the entire reagent count vs desired reagent comparison in a not-nil if statement for Nihlolino's reported bug
+                -- this shouldn't need to exist. a reagent can't stack to nil. 
+                if totalCountOfReagent ~= nil and desiredCountOfReagent ~= nil then
+                    if totalCountOfReagent >= desiredCountOfReagent then
+                        -- we got enough not gonna buy any more
+                    elseif totalCountOfReagent < desiredCountOfReagent then
+                        -- we don't have enough, let's buy some more
+                        shoppingCart[tableIndex] = {buff.reagentName, desiredCountOfReagent-totalCountOfReagent}
+                        tableIndex = tableIndex+1
+                        if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[i].reagentName.." to cart.") end
+                    end
                 end
             end
         end
