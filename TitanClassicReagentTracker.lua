@@ -134,7 +134,9 @@ addon.registry = {
 local buttons = {}
 for i = 1, #spells do
 	buttons[i] = newReagent(addon, i)
-	addon.registry.savedVariables["TrackReagent"..i] = (i == 1)
+    addon.registry.savedVariables["TrackReagent"..i] = (i == 1)
+    addon.registry.savedVariables["BuyReagent"..i] = (i == 1)   -- Without first creating the variables in the addon.registry
+                                                                -- for later use, the variables won't be saved across game reload
 	possessed[i] = {}
 end
 
