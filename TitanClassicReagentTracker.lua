@@ -152,9 +152,15 @@ queryTooltip:SetScript("OnTooltipSetItem", function(self)
 end)
 
 
+--[[
+-- **************************************************************************
+-- NAME : RefreshReagents()
+-- DESC : Build a list of reagents for spells that a player knows
+-- **************************************************************************
+--]]
 function addon:RefreshReagents()
-	for p_index, buff in ipairs(spells) do
-		local possessed = possessed[p_index]
+	for i, buff in ipairs(spells) do
+		local possessed = possessed[i]
         wipe(possessed) -- TODO: wtf is this doing? Potentially remove, but haven't fully tested.
         
         -- for every spell, get the reagent info
@@ -179,10 +185,13 @@ function addon:RefreshReagents()
 end
 
 
---
--- function which checks if any reagents are being tracked, and if so, generates the icon / text / values to be shown
--- in the titan panel window. if no reagents tracked, hides all buttons
---
+--[[
+-- **************************************************************************
+-- NAME : UpdateButton()
+-- DESC : Check if any reagents are being tracked, and if so, generates the icon / text / values to be shown
+--      : in the titan panel window. if no reagents tracked, hides all buttons
+-- **************************************************************************
+--]]
 function addon:UpdateButton()
 	local tracking
 	local totalWidth = 0
@@ -244,9 +253,12 @@ function addon:UpdateButton()
 	self:SetWidth(totalWidth + ((offset - 1) * 8))
 end
 
---
--- function that creates the values to be displayed in the right click -> drop down menu of the addon
---
+--[[
+-- **************************************************************************
+-- NAME : TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
+-- DESC : Create the values to be displayed in the right click -> drop down menu of the addon
+-- **************************************************************************
+--]]
 function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
     local info
 	-- level 2
@@ -334,18 +346,24 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 
 end
 
---
--- function that simply toggles between showing spell icons, and reagent icons
---
+--[[
+-- **************************************************************************
+-- NAME : TitanPanelReagentTrackerSpellIcon_Toggle()
+-- DESC : Toggles between showing spell icons and reagent icons
+-- **************************************************************************
+--]]
 function TitanPanelReagentTrackerSpellIcon_Toggle()
 	TitanToggleVar(TITAN_REAGENTTRACKER_ID, "ShowSpellIcons")
 	addon:UpdateButton()
 end
 
---
--- function that generates a mouseover text with a summary of all the tracked reagents, and their amounts
--- when the mouse is over the titan panel section where Reagent Tracker is
---
+--[[
+-- **************************************************************************
+-- NAME : TitanPanelReagentTracker_GetTooltipText()
+-- DESC : Generate a mouseover text with a summary of all the tracked reagents, and their amounts
+--      : when the mouse is over the titan panel section where Reagent Tracker is
+-- **************************************************************************
+--]]
 function TitanPanelReagentTracker_GetTooltipText()
 	local tooltipText = " "
 	
@@ -364,10 +382,13 @@ function TitanPanelReagentTracker_GetTooltipText()
 	end
 end
 
---
--- function to actually buy the reagents from the vendor
--- this will buy up to a single stack of items that are tracked as reagents for spells you know
---
+--[[
+-- **************************************************************************
+-- NAME : BuyReagents()
+-- DESC : Buy the reagents from the vendor
+--      : this will buy up to a single stack of items that are tracked as reagents for spells you know
+-- **************************************************************************
+--]]
 function addon:BuyReagents()
    local shoppingCart = {};    -- list of items to buy
    local tableIndex = 1 -- because LUA handles tables poorly, deciding that a table/list which has 2 sequential nil values in it
@@ -375,7 +396,7 @@ function addon:BuyReagents()
 
     -- first up, let's fill our shopping cart
     -- for every spell we have
-    --for i = 1, table.getn(possessed) do
+    --for i = 1, table.getn(possessed) do   -- TODO: remove and test
     for i, buff in ipairs(possessed) do
         -- if the option is set to autobuy the reagent for this spell
         if TitanGetVar(TITAN_REAGENTTRACKER_ID, "BuyReagent"..i) == 1 then
@@ -413,7 +434,7 @@ function addon:BuyReagents()
                 end
                 if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Found "..totalCountOfReagent.." "..buff.reagentName.." in bags") end 
                 -- enclosing the entire reagent count vs desired reagent comparison in a not-nil if statement for Nihlolino's reported bug
-                -- this shouldn't need to exist. a reagent can't stack to nil. 
+                -- this shouldn't need to exist. A reagent can't stack to nil. 
                 if totalCountOfReagent ~= nil and desiredCountOfReagent ~= nil then
                     if totalCountOfReagent >= desiredCountOfReagent then
                         -- we got enough not gonna buy any more
@@ -454,11 +475,16 @@ function addon:BuyReagents()
 	end	
 end
 
---
--- Buy a quantity of an item from a vendor
--- the logic is a inelegant: iterate through every item the vendor has, compare it to what we want, 
--- and if it matches buy the desired amount
---
+--[[
+-- **************************************************************************
+-- NAME : buyItemFromVendor(itemName, purchaseCount)
+-- DESC : Buy a quantity of an item from a vendor
+--      : the logic is a inelegant: iterate through every item the vendor has, compare it to what we want, 
+--      : and if it matches buy the desired amount
+-- VAR  : itemName = name of the item (reagent)
+--      : purchaseCount = amount of item to buy
+-- **************************************************************************
+--]]
 function buyItemFromVendor(itemName, purchaseCount)
     -- check for each of the merchant's items to see if it's what we want
     for index = 0, GetMerchantNumItems() do
@@ -472,10 +498,19 @@ function buyItemFromVendor(itemName, purchaseCount)
 end
 
 
--- getting passed bag1:slot1, bag1:2, 1:3, etc.
-function getItemNameItemCountFromBag(bag, item)    
+
+--[[
+-- **************************************************************************
+-- NAME : getItemNameItemCountFromBag(bagNumber, slotNumber)
+-- DESC : gets the item name and count of item for a bag slot
+        : This is used (with other logic) to get a total sum of all of a single reagent in a player's bag
+-- VAR  : bagNumber = which bag slot is being checked
+--      : slotNumber = which slot (within a bag) is being checked
+-- **************************************************************************
+--]]
+function getItemNameItemCountFromBag(bagNumber, slotNumber)    
     -- get the count and link of the item in this bag slot
-    local _, itemCount, _, _, _, _, itemLink = GetContainerItemInfo(bag, item);
+    local _, itemCount, _, _, _, _, itemLink = GetContainerItemInfo(bagNumber, slotNumber);
     local itemName
     
     -- if an item is actually there, get the name of the item, instead of the link
