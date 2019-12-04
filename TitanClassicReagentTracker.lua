@@ -1,18 +1,18 @@
 -- **************************************************************************
--- * TitanBag.lua
+-- * TitanClassicReagentTracker.lua
 -- *
--- * By: TitanMod, Dark Imakuni, Adsertor and the Titan Panel Development Team
+-- * By: Initial fork of Titan Reagent by L'ombra. Retrofitted for WoW Classic by Farwalker & cliaz
 -- **************************************************************************
 
 -- ******************************** Constants *******************************
 local _G = getfenv(0);
 local TITAN_REAGENTTRACKER_ID = "ReagentTracker"
---local updateTable = {TITAN_BAG_ID, TITAN_PANEL_UPDATE_BUTTON};
+--local updateTable = {TITAN_BAG_ID, TITAN_PANEL_UPDATE_BUTTON};    --TODO: test & remove
 -- ******************************** Variables *******************************
 local L = LibStub("AceLocale-3.0"):GetLocale("TitanClassic", true)
---local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)
---local AceTimer = LibStub("AceTimer-3.0")
---local BagTimer
+--local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)    --TODO: test & remove
+--local AceTimer = LibStub("AceTimer-3.0")    --TODO: test & remove
+--local BagTimer    --TODO: test & remove
 local debug = false -- setting this to true will enable a lot of debug messages being output on the wow screen
 local printPurchasingMessages = false   -- TODO: move this to addon.registry stored variables
 local playerClass = select(2, UnitClass("player"))
@@ -28,9 +28,13 @@ if not spells then return end   -- don't continue addon load if there are no rea
 
 
 
---
--- create a new button for each reagent
---
+--[[
+-- **************************************************************************
+-- NAME : newReagent(parent, i)
+-- DESC : Creates a Button Frame to display a reagent in Titan Panel 
+-- VARS : parent = the addon, i = button ID
+-- **************************************************************************
+--]]
 local function newReagent(parent, i)
 	
 	local btn = CreateFrame("Button", "TitanPanelReagentTrackerReagent"..i, parent, "TitanPanelChildButtonTemplate")
@@ -83,12 +87,12 @@ addon:SetScript("OnEvent", function(self, event, ...)
 		TitanPanelButton_UpdateTooltip(self)
         self:RegisterEvent("BAG_UPDATE")
     elseif event == "MERCHANT_SHOW" then    -- handle a merchant window opening. this is to autobuy reagents
-        --if TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy") then --TODO
+        --if TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy") then    --TODO: test & remove
             self:BuyReagents()
             self:UpdateButton()
             TitanPanelButton_UpdateTooltip(self)
             self:RegisterEvent("BAG_UPDATE")
-        --end
+        --end    --TODO: test & remove
 	else
 		-- update on next frame to prevent redundant CPU processing from event spamming
 		self.refreshReagents = event == "LEARNED_SPELL_IN_TAB"
@@ -113,15 +117,20 @@ addon.registry = {
 	savedVariables = {
 		ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
         --AutoBuy = false, -- variable used throughout the addon to determine whether or not to autobuy reagents TODO
+                            --TODO: test & remove
 	}
 }
 
 
---
--- create a button for every spell / reagent in the spell array, to be shown in titan panel horizontally
--- Save these buttons and their settings in titan variables so that they persist across relaunch
--- also create a list in the possessed array, which we'll use to store reagent information later
---
+--[[
+-- **************************************************************************
+-- NAME : N/A
+-- DESC : create a button for every spell / reagent in the spell array, to be shown in titan panel horizontally
+--      : Save these buttons and their settings in titan variables so that they persist across relaunch
+--      : also create a list in the possessed array, which we'll use to store reagent information later
+-- VARS : parent = the addon, i = button ID
+-- **************************************************************************
+--]]
 local buttons = {}
 for i = 1, #spells do
 	buttons[i] = newReagent(addon, i)
@@ -144,7 +153,7 @@ end)
 function addon:RefreshReagents()
 	for p_index, buff in ipairs(spells) do
 		local possessed = possessed[p_index]
-        wipe(possessed) -- wtf is this doing? Potentially remove, but haven't fully tested.
+        wipe(possessed) -- TODO: wtf is this doing? Potentially remove, but haven't fully tested.
         
         -- for every spell, get the reagent info
 		for index, spell in ipairs(buff.spells) do
@@ -248,11 +257,11 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
                 local reagent = buff.reagentName
                 if reagent then
                     info.text = "Buy "..reagent
-                    info.value = "Autobuy"..index
-                    info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Autobuy"..index)
+                    info.value = "BuyReagent"..index
+                    info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "BuyReagent"..index)
                     info.keepShownOnClick = 1
                     info.func = function()
-                        TitanToggleVar(TITAN_REAGENTTRACKER_ID, "Autobuy"..index); -- just a note on TitanToggleVar. It 'toggles' the variable
+                        TitanToggleVar(TITAN_REAGENTTRACKER_ID, "BuyReagent"..index); -- just a note on TitanToggleVar. It 'toggles' the variable
                                                                                         -- between '1' and '', instead of true/false. Can be problematic
                         addon:UpdateButton();
                     end
@@ -367,7 +376,7 @@ function addon:BuyReagents()
     --for i = 1, table.getn(possessed) do
     for i, buff in ipairs(possessed) do
         -- if the option is set to autobuy the reagent for this spell
-        if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Autobuy"..i) == 1 then
+        if TitanGetVar(TITAN_REAGENTTRACKER_ID, "BuyReagent"..i) == 1 then
 
             local totalCountOfReagent = 0
             local desiredCountOfReagent = 0
@@ -431,6 +440,7 @@ function addon:BuyReagents()
             buyItemFromVendor(shoppingCart[i][1], shoppingCart[i][2])
             -- if the user has enabled printing messages about purchasing reagents
             -- TODO: messages are disabled at the moment, need to give users option to enabled / disable
+            -- TODO: alternatively, just delete this, as purchases are already put into chat
             if printPurchasingMessages == true then 
                 -- tell the user we're bought stuff for them
                 if messagedPrinted ~= true then
