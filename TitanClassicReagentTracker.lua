@@ -7,12 +7,10 @@
 -- ******************************** Constants *******************************
 local _G = getfenv(0);
 local TITAN_REAGENTTRACKER_ID = "ReagentTracker"
---local updateTable = {TITAN_BAG_ID, TITAN_PANEL_UPDATE_BUTTON};    --TODO: test & remove
+
 -- ******************************** Variables *******************************
 local L = LibStub("AceLocale-3.0"):GetLocale("TitanClassic", true)
---local L = LibStub("AceLocale-3.0"):GetLocale("Titan", true)    --TODO: test & remove
---local AceTimer = LibStub("AceTimer-3.0")    --TODO: test & remove
---local BagTimer    --TODO: test & remove
+
 local debug = false -- setting this to true will enable a lot of debug messages being output on the wow screen
 local printPurchasingMessages = false   -- TODO: move this to addon.registry stored variables
 local playerClass = select(2, UnitClass("player"))
@@ -27,12 +25,12 @@ if not spells then return end   -- don't continue addon load if there are no rea
 
 
 
-
 --[[
 -- **************************************************************************
 -- NAME : newReagent(parent, i)
 -- DESC : Creates a Button Frame to display a reagent in Titan Panel 
--- VARS : parent = the addon, i = button ID
+-- VARS : parent = the addon,
+        : i = button ID
 -- **************************************************************************
 --]]
 local function newReagent(parent, i)
@@ -87,12 +85,10 @@ addon:SetScript("OnEvent", function(self, event, ...)
 		TitanPanelButton_UpdateTooltip(self)
         self:RegisterEvent("BAG_UPDATE")
     elseif event == "MERCHANT_SHOW" then    -- handle a merchant window opening. this is to autobuy reagents
-        --if TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy") then    --TODO: test & remove
-            self:BuyReagents()
-            self:UpdateButton()
-            TitanPanelButton_UpdateTooltip(self)
-            self:RegisterEvent("BAG_UPDATE")
-        --end    --TODO: test & remove
+        self:BuyReagents()
+        self:UpdateButton()
+        TitanPanelButton_UpdateTooltip(self)
+        self:RegisterEvent("BAG_UPDATE")
 	else
 		-- update on next frame to prevent redundant CPU processing from event spamming
 		self.refreshReagents = event == "LEARNED_SPELL_IN_TAB"
@@ -116,8 +112,6 @@ addon.registry = {
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
 	savedVariables = {
 		ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
-        --AutoBuy = false, -- variable used throughout the addon to determine whether or not to autobuy reagents TODO
-                            --TODO: test & remove
 	}
 }
 
@@ -386,7 +380,7 @@ end
 -- **************************************************************************
 -- NAME : BuyReagents()
 -- DESC : Buy the reagents from the vendor
---      : this will buy up to a single stack of items that are tracked as reagents for spells you know
+--      : this will buy up to a single stack of items that are tracked as reagents for spells a player knows
 -- **************************************************************************
 --]]
 function addon:BuyReagents()
