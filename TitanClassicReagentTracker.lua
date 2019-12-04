@@ -12,7 +12,6 @@ local TITAN_REAGENTTRACKER_ID = "ReagentTracker"
 local L = LibStub("AceLocale-3.0"):GetLocale("TitanClassic", true)
 
 local debug = false -- setting this to true will enable a lot of debug messages being output on the wow screen
-local printPurchasingMessages = false   -- TODO: move this to addon.registry stored variables
 local playerClass = select(2, UnitClass("player"))
 local possessed = {}    -- store spells that the player knows here
 -- note: look at addon.registry to see variables saved between restarts
@@ -432,23 +431,11 @@ function addon:BuyReagents()
     -- shoppingCart[x][1] = the reagent name
     -- shoppingCart[x][2] = how many reagents to buy
     
-    local messagedPrinted = false;
-
     -- for each item in shoppingCart
     for i = 1, table.getn(shoppingCart) do
         -- pass the Reagent name and the required count to the buying function
         if shoppingCart[i][1] ~= nil and shoppingCart[i][2] ~= nil then
             buyItemFromVendor(shoppingCart[i][1], shoppingCart[i][2])
-            -- if the user has enabled printing messages about purchasing reagents
-            -- TODO: messages are disabled at the moment, need to give users option to enabled / disable
-            -- TODO: alternatively, just delete this, as purchases are already put into chat
-            if printPurchasingMessages == true then 
-                -- tell the user we're bought stuff for them
-                if messagedPrinted ~= true then
-                    DEFAULT_CHAT_FRAME:AddMessage("|cffffff00<TitanPanelReagents> Extra reagents bought.|r");        
-                    messagedPrinted = true    -- only want to tell them once 
-                end
-            end
         end
 	end	
 end
