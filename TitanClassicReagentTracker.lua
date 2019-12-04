@@ -309,23 +309,7 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 		end
 	end
 
-
     TitanPanelRightClickMenu_AddSpacer()
-    -- add the autobuy toggle button
-    -- TODO: change this to be a button per reagent
-    --[[
-        info.text = "Autobuy reagents"
-    info.value = "AutoBuy"
-    info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "AutoBuy")
-    info.keepShownOnClick = 1
-    info.func = function()
-        TitanToggleVar(TITAN_REAGENTTRACKER_ID, "AutoBuy");
-        addon:UpdateButton();
-    end
-    L_UIDropDownMenu_AddButton(info);
-    wipe(info)
-    ]]--
-
 
     -- if we're currently showing spell icons, display the "show reagent icons" text
 	if TitanGetVar(TITAN_REAGENTTRACKER_ID, "ShowSpellIcons") then
