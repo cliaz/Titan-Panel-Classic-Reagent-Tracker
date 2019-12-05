@@ -11,4 +11,5 @@ This is a continuation (retrogression?) of the WoW [Titan Panel Reagent Tracker]
 - Filtered to Spell Reagents by Class
 
 ### Automatic Purchasing of Spell Reagents
-- Automatically buys up to 1 stack of Spell Reagents for spells that your character knows
+- Automatically tops up Spell Reagents to max of 1 stack
+- Choose which Spell Reagents to automatically buy at vendor
