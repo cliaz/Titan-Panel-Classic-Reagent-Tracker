@@ -371,6 +371,16 @@ function addon:BuyReagents()
    local shoppingCart = {};    -- list of items to buy
    local tableIndex = 1 -- because LUA handles tables poorly, deciding that a table/list which has 2 sequential nil values in it
                     -- has no values after those nils, we have to use a manual counter to correctly store items in a list
+    
+    -- print list of all reagents that the addon has determined that the player needs, based on spells he/she knows
+    if debug == true then
+        DEFAULT_CHAT_FRAME:AddMessage("Player knows spells requiring the following reagents:");
+        for i, buff in ipairs(possessed) do
+            if buff.reagentName ~= nil then
+                DEFAULT_CHAT_FRAME:AddMessage(" - "..buff.reagentName);
+            end
+        end        
+    end
 
     -- first up, let's fill our shopping cart
     -- for every spell we have
