@@ -1,8 +1,8 @@
 ## Interface: 11304
-## Title: Titan Panel [|cffeda55fReagent Tracker|r] |cff00aa001.0.911304|r
-## Version: 1.0.911304
+## Title: Titan Panel [|cffeda55fReagent Tracker|r] |cff00aa001.0.10.11304|r
+## Version: 1.0.10.11304
 ## Notes: Monitors spell reagents. Fork of Titan Reagent by L'ombra.
-## Author: Farwalker & Klausjones
+## Author: Farwalker & cliaz
 ## Dependencies: TitanClassic
 ## X-Child-Of: TitanClassic
 

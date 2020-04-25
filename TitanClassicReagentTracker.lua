@@ -110,7 +110,8 @@ addon.registry = {
 	tooltipTitle = "Reagent Tracker Info", 
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
 	savedVariables = {
-		ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
+        ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
+        Buy3StacksSymbolOfKings = false,
 	}
 }
 
@@ -274,6 +275,26 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
                         addon:UpdateButton();
                     end
                     L_UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+
+                    -- Github Issue #3
+                    if reagent == "Symbol of Kings" then
+                        -- add button to buy for raid amounts
+                        info2 = {};
+                        info2.text = "Buy 3 stacks of "..reagent
+                        info2.value = Buy3StacksSymbolOfKings
+
+                        info2.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSymbolOfKings")
+                        
+                        info2.keepShownOnClick = 1
+                        info2.func = function()
+                            TitanToggleVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSymbolOfKings"); -- just a note on           TitanToggleVar. It 'toggles' the variable
+                                                                                            -- between '1' and '', instead of true/false. Can be problematic
+                            addon:UpdateButton();
+                        end
+                        L_UIDropDownMenu_AddButton(info2, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+                    end
+                    -- end Github Issue #3
+
                 end
             end
 		end
@@ -335,6 +356,7 @@ function TitanPanelReagentTrackerSpellIcon_Toggle()
 	addon:UpdateButton()
 end
 
+
 --[[
 -- **************************************************************************
 -- NAME : TitanPanelReagentTracker_GetTooltipText()
@@ -395,7 +417,15 @@ function addon:BuyReagents()
                 -- the 8th variable returned by GetItemInfo() is the itemStackCount; the max an item will stack to
                 -- it should never be nil
                 _, _, _, _, _, _, _, desiredCountOfReagent = GetItemInfo(buff.reagentName)    -- get the max a stack of this reagent can be
-            end                                                                                        -- just so that we buy one stack only
+                                                                                                -- just so that we buy one stack only
+                
+                -- Github Issue #3
+                if buff.reagentName == "Symbol of Kings" and TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSymbolOfKings") then
+                   desiredCountOfReagent = desiredCountOfReagent * 3
+                end
+                -- end Github Issue #3
+                
+            end                                                                                        
 
             if debug == true then 
                 if buff.reagentName ~= nil then
