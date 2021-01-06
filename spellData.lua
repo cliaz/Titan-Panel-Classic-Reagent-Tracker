@@ -42,7 +42,7 @@ addon.spells = {
 				3562,	-- Ironforge
 				3565,	-- Darnassus
 			},
-			reagent = 17031,
+			reagent = 17031,    -- Rune of Teleportation
 		},
 		{	-- Portals
 			spells = {
@@ -53,7 +53,7 @@ addon.spells = {
 				11416,	-- Ironforge
 				11419,	-- Darnassus
 			},
-			reagent = 17032,
+			reagent = 17032,    -- Rune of Portals
 		},
 		{	-- Slow fall
 			spells = {130},
@@ -61,7 +61,7 @@ addon.spells = {
 		},
 		{	-- Arcane Brilliance
 			spells = {23028},
-			reagent = 17020,
+			reagent = 17020,    -- Arcane Powder
 		},
 	},
 	PALADIN = {
@@ -198,7 +198,7 @@ addon.spells = {
 	SHAMAN = {
 		{	-- Reincarnation
 			spells = {20608},
-			reagent = 17030,
+			reagent = 17030,    -- Ankh
 		},
 		{	-- Water breathing
 			spells = {131},
