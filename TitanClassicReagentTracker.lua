@@ -311,8 +311,12 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
                         end
                         
                         if debug == true then
-                            DEFAULT_CHAT_FRAME:AddMessage("3 Stack option set to: "..info2.value);
-                            DEFAULT_CHAT_FRAME:AddMessage("(Should only be true or false))");
+                            DEFAULT_CHAT_FRAME:AddMessage("Local var ThreeStackVariableName set to: "..ThreeStackVariableName);
+                            if info2.value ~= nil then
+                                DEFAULT_CHAT_FRAME:AddMessage("Global (saved) var for buying 3 stacks set to: '"..info2.value.."'");
+                            end
+                            DEFAULT_CHAT_FRAME:AddMessage("Global (saved) var for buying 3 stacks set to: ''");
+                            DEFAULT_CHAT_FRAME:AddMessage("Should only be true ('1') or false ('')");
                         end
 
                         -- add button to buy for raid amounts    
@@ -331,7 +335,6 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
                         end
                         L_UIDropDownMenu_AddButton(info2, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
                     end
-
                     -- end Github Issue #3
 
                 end
@@ -459,8 +462,16 @@ function addon:BuyReagents()
                                                                                                 -- just so that we buy one stack only
                 
                 -- Github Issue #3
-                if buff.reagentName == "Symbol of Kings" and TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSymbolOfKings") then
-                   desiredCountOfReagent = desiredCountOfReagent * 3
+           
+                if (
+                (buff.reagentName == "Arcane Powder" and TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksArcanePowder")) or
+                (buff.reagentName == "Maple Seed" and TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksMapleSeed")) or
+                (buff.reagentName == "Sacred Candle" and TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSacredCandle")) or
+                (buff.reagentName == "Symbol of Kings" and TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSymbolOfKings")) or
+                (buff.reagentName == "Wild Thornroot" and TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksWildThornroot"))
+                ) then
+                   
+                    desiredCountOfReagent = desiredCountOfReagent * 3
                 end
                 -- end Github Issue #3
                 
