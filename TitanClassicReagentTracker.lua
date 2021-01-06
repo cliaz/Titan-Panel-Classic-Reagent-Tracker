@@ -290,29 +290,35 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
                     reagent == "Symbol of Kings" or
                     reagent == "Wild Thornroot" then
 
+                        info2 = {};
                         -- set global variable name appropriately
                         ThreeStackVariableName = ""
                         if reagent == "Arcane Powder" then
                             info2.value = Buy3StacksArcanePowder
                             ThreeStackVariableName = "Buy3StacksArcanePowder"
-                        else reagent == "Maple Seed" then
+                        elseif reagent == "Maple Seed" then
                             info2.value = Buy3StacksMapleSeed
                             ThreeStackVariableName = "Buy3StacksMapleSeed"
-                        else reagent == "Sacred Candle" then
+                        elseif reagent == "Sacred Candle" then
                             info2.value = Buy3StacksSacredCandle
                             ThreeStackVariableName = "Buy3StacksSacredCandle"
-                        else reagent == "Symbol of Kings" then
+                        elseif reagent == "Symbol of Kings" then
                             info2.value = Buy3StacksSymbolOfKings
                             ThreeStackVariableName = "Buy3StacksSymbolOfKings"
-                        else reagent == "Wild Thornroot" then
+                        elseif reagent == "Wild Thornroot" then
                             info2.value = Buy3StacksWildThornroot
                             ThreeStackVariableName = "Buy3StacksWildThornroot"
                         end
+                        
+                        if debug == true then
+                            DEFAULT_CHAT_FRAME:AddMessage("3 Stack option set to: "..info2.value);
+                            DEFAULT_CHAT_FRAME:AddMessage("(Should only be true or false))");
+                        end
+
                         -- add button to buy for raid amounts    
-                        info2 = {};
                         info2.text = "Buy 3 stacks of "..reagent
                         --info2.value = Buy3StacksSymbolOfKings
-
+                        
                         --info2.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSymbolOfKings")
                         info2.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, ThreeStackVariableName)
 
