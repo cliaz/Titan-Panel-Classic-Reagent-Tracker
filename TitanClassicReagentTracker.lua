@@ -291,40 +291,36 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
                     reagent == "Wild Thornroot" then
 
                         -- set global variable name appropriately
-                        3StackVariableName = ""
+                        ThreeStackVariableName = ""
                         if reagent == "Arcane Powder" then
                             info2.value = Buy3StacksArcanePowder
-                            3StackVariableName = "Buy3StacksArcanePowder"
-
+                            ThreeStackVariableName = "Buy3StacksArcanePowder"
                         else reagent == "Maple Seed" then
                             info2.value = Buy3StacksMapleSeed
-                            3StackVariableName = "Buy3StacksMapleSeed"
-
+                            ThreeStackVariableName = "Buy3StacksMapleSeed"
                         else reagent == "Sacred Candle" then
                             info2.value = Buy3StacksSacredCandle
-                            3StackVariableName = "Buy3StacksSacredCandle"
-
+                            ThreeStackVariableName = "Buy3StacksSacredCandle"
                         else reagent == "Symbol of Kings" then
                             info2.value = Buy3StacksSymbolOfKings
-                            3StackVariableName = "Buy3StacksSymbolOfKings"
-
+                            ThreeStackVariableName = "Buy3StacksSymbolOfKings"
                         else reagent == "Wild Thornroot" then
                             info2.value = Buy3StacksWildThornroot
-                            3StackVariableName = "Buy3StacksWildThornroot"
-
+                            ThreeStackVariableName = "Buy3StacksWildThornroot"
+                        end
                         -- add button to buy for raid amounts    
                         info2 = {};
                         info2.text = "Buy 3 stacks of "..reagent
                         --info2.value = Buy3StacksSymbolOfKings
 
                         --info2.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSymbolOfKings")
-                        info2.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, 3StackVariableName)
+                        info2.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, ThreeStackVariableName)
 
                         info2.keepShownOnClick = 1
                         info2.func = function()
                             --TitanToggleVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSymbolOfKings"); -- just a note on TitanToggleVar. It 'toggles' the variable
                                                                                             -- between '1' and '', instead of true/false. Can be problematic
-                            TitanToggleVar(TITAN_REAGENTTRACKER_ID, 3StackVariableName);
+                            TitanToggleVar(TITAN_REAGENTTRACKER_ID, ThreeStackVariableName);
                             addon:UpdateButton();
                         end
                         L_UIDropDownMenu_AddButton(info2, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
