@@ -293,6 +293,7 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
                         info2 = {};
                         -- set global variable name appropriately
                         ThreeStackVariableName = ""
+                        info2.value = ""
                         if reagent == "Arcane Powder" then
                             info2.value = Buy3StacksArcanePowder
                             ThreeStackVariableName = "Buy3StacksArcanePowder"
