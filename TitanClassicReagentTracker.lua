@@ -131,6 +131,10 @@ for i = 1, #spells do
     addon.registry.savedVariables["TrackReagent"..i] = (i == 1)
     addon.registry.savedVariables["BuyReagent"..i] = (i == 1)   -- Without first creating the variables in the addon.registry
                                                                 -- for later use, the variables won't be saved across game reload
+    addon.registry.savedVariables["Reagent"..i.."OneStack"] = (i == 1)         
+    addon.registry.savedVariables["Reagent"..i.."TwoStack"] = (i == 1)         
+    addon.registry.savedVariables["Reagent"..i.."ThreeStack"] = (i == 1) 
+    addon.registry.savedVariables["Reagent"..i.."NoStacks"] = (i == 1)                                                            
 	possessed[i] = {}
 end
 
@@ -255,6 +259,74 @@ end
 --]]
 function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
     local info
+    
+    -- level 3  
+    if _G["L_UIDROPDOWNMENU_MENU_LEVEL"] == 3 then
+        for index, buff in ipairs(possessed) do
+            local info1 = {};
+            local info2 = {};
+            local info3 = {};
+            local info4 = {};
+            local reagent = buff.reagentName
+            if reagent then
+                if _G["L_UIDROPDOWNMENU_MENU_VALUE"] == reagent.." Options" then    -- make sure it only builds buttons for the right reagent
+                    -- Button for One Stack
+                    info1.text = "Buy 1 stack of "..reagent
+                    info1.value = "Buy 1 stack of "..reagent
+                    info1.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack")
+                    info1.func = function()
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", true);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", false);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", false);    
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", false);              
+                    end
+
+                    -- Button for Two Stacks
+                    info2.text = "Buy 2 stacks of "..reagent
+                    info2.value = "Buy 2 stacks of "..reagent
+                    info2.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack")
+                    info2.func = function()
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", false);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", true);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", false);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", false);              
+                    end
+
+                    -- Button for Three Stacks
+                    info3.text = "Buy 3 stacks of "..reagent
+                    info3.value = "Buy 3 stacks of "..reagent
+                    info3.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack")
+                    info3.func = function()
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", false);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", false);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", true);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", false);              
+                    end
+
+                    -- Button to not autobuy any stacks
+                    info4.text = "Do not autobuy "..reagent
+                    info4.value = "Do not autobuy "..reagent
+                    info4.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks")
+                    info4.func = function()
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", false);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", false);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", false);
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", true);              
+                    end
+                    
+                    -- add all buttons
+                    L_UIDropDownMenu_AddButton(info1, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+                    L_UIDropDownMenu_AddButton(info2, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+                    L_UIDropDownMenu_AddButton(info3, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+                    L_UIDropDownMenu_AddButton(info4, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+                end
+            end
+        end
+        return
+    end
+    -- /level 3
+
+
 	-- level 2
 	if _G["L_UIDROPDOWNMENU_MENU_LEVEL"] == 2 then
 		if _G["L_UIDROPDOWNMENU_MENU_VALUE"] == "Autobuy Options" then
@@ -264,15 +336,12 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
                 info = {};
                 local reagent = buff.reagentName
                 if reagent then
-                    info.text = "Buy "..reagent
-                    info.value = "BuyReagent"..index
-                    info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "BuyReagent"..index)
+                    info.text = reagent.." Options"
+                    info.value = reagent.." Options"
+                    info.notCheckable = true
+                    info.hasArrow = 1;
                     info.keepShownOnClick = 1
-                    info.func = function()
-                        TitanToggleVar(TITAN_REAGENTTRACKER_ID, "BuyReagent"..index); -- just a note on TitanToggleVar. It 'toggles' the variable
-                                                                                        -- between '1' and '', instead of true/false. Can be problematic
-                        addon:UpdateButton();
-                    end
+
                     L_UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
 
                 end
@@ -280,6 +349,7 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 		end
 		return
 	end
+    -- /level 2
 	
 	-- level 1
     TitanPanelRightClickMenu_AddTitle(TitanPlugins[TITAN_REAGENTTRACKER_ID].menuText)
@@ -322,6 +392,7 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 	TitanPanelRightClickMenu_AddSpacer()
 	
 	TitanPanelRightClickMenu_AddCommand("Hide", TITAN_REAGENTTRACKER_ID, TITAN_PANEL_MENU_FUNC_HIDE);
+    -- /level 1
 
 end
 
@@ -389,8 +460,7 @@ function addon:BuyReagents()
     --for i = 1, table.getn(possessed) do   -- TODO: remove and test
     for index, buff in ipairs(possessed) do
         -- if the option is set to autobuy the reagent for this spell
-        if TitanGetVar(TITAN_REAGENTTRACKER_ID, "BuyReagent"..i) == 1 then
-
+        if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") then
             local totalCountOfReagent = 0
             local desiredCountOfReagent = 0
             if buff.reagentName ~= nil then
@@ -399,8 +469,15 @@ function addon:BuyReagents()
                 _, _, _, _, _, _, _, desiredCountOfReagent = GetItemInfo(buff.reagentName)    -- get the max a stack of this reagent can be
                                                                                                 -- just so that we buy one stack only
                 
-                
-                
+                -- cater for buying multiple stacks of reagents
+                if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") then
+                    desiredCountOfReagent = desiredCountOfReagent * 1 
+                elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") then
+                    desiredCountOfReagent = desiredCountOfReagent * 2
+                elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") then
+                    desiredCountOfReagent = desiredCountOfReagent * 3
+                end   
+                            
             end                                                                                        
 
             if debug == true then 
