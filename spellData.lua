@@ -24,12 +24,20 @@ addon.spells = {
 			reagent = 17038, -- Maple Seed
 		},
 		{	
+			spells = {26994}, -- Rebirth (Rank 6)
+			reagent = 22147, -- Flintweed Seed
+		},
+		{	
 			spells = {21849}, -- Gift of the Wild (Rank 1)
 			reagent = 17021, -- Wild Berries
 		},
 		{	
 			spells = {21850}, -- Gift of the Wild (Rank 2)
 			reagent = 17026, -- Wild Thornroot
+		},
+		{	
+			spells = {26991}, -- Gift of the Wild (Rank 3)
+			reagent = 22148, -- Wild Quillvine
 		},
 	},
 	MAGE = {
@@ -38,9 +46,15 @@ addon.spells = {
 				3567,	-- Orgrimmar
 				3563,	-- Undercity
 				3566,	-- Thunder Bluff
+				32272,  -- Silvermoon
+				49358,  -- Stonard
+				35715,  -- Shattrath (Horde)
 				3561,	-- Stormwind
 				3562,	-- Ironforge
 				3565,	-- Darnassus
+				32271,	-- Exodar
+				49359,	-- Theramore
+				33690,	-- Shattrath (Alliance)
 			},
 			reagent = 17031,
 		},
@@ -49,9 +63,15 @@ addon.spells = {
 				11417,	-- Orgrimmar
 				11418,	-- Undercity
 				11420,	-- Thunder Bluff
+				32267,	-- Silvermoon
+				49361,	-- Stonard
+				35717,	-- Shattrath (Horde)
 				10059,	-- Stormwind
 				11416,	-- Ironforge
 				11419,	-- Darnassus
+				32266,	-- Exodar
+				49360,	-- Theramore
+				33691,	-- Shattrath (Alliance)
 			},
 			reagent = 17032,
 		},
@@ -61,6 +81,14 @@ addon.spells = {
 		},
 		{	-- Arcane Brilliance
 			spells = {23028},
+			reagent = 17020,
+		},
+		{	-- Arcane Brilliance (Rank 2)
+			spells = {23028},
+			reagent = 17020,
+		},
+		{	-- Ritual of Refreshment
+			spells = {43987},
 			reagent = 17020,
 		},
 	},
@@ -73,12 +101,16 @@ addon.spells = {
 			spells = {
 				25782,	-- Might (Rank 1)
 				25916,	-- Might (Rank 2)
+				27141,	-- Might (Rank 3)
 				25894,	-- Wisdom (Rank 1)
 				25918,	-- Wisdom (Rank 2)
+				27143,	-- Wisdom (Rank 3)
 				25898,	-- Kings
 				25895,	-- Salvation
 				25899,	-- Sanctuary
+				27169,	-- Sanctuary (Rank 2)
 				25890,	-- Light
+				27145,	-- Light (Rank 2)
 			},
 			reagent = 21177,	--Symbol of Kings
 		},
@@ -95,14 +127,21 @@ addon.spells = {
 		{
 			spells = {
 				27683,	-- Prayer of Shadow Protection
+				39374,	-- Prayer of Shadow Protection (Rank 2)
 				27681,	-- Prayer of Spirit
+				32999,	-- Prayer of Spirit (Rank 2)
 				21564,	-- Prayer of Fortitude (Rank 2)
+				25392,	-- Prayer of Fortitude (Rank 3)
 			},
 			reagent = 17029,	-- Sacred Candle
 		},
 	},
 	-- using the "Poisons" skill for all poisons
 	ROGUE = {
+		{	-- Anesthetic
+			spells = {2842},
+			reagent = 21835,
+		},
 		{	-- Instant
 			spells = {2842},
 			reagent = 6947,
@@ -126,6 +165,10 @@ addon.spells = {
 		{	-- Instant VI
 			spells = {2842},
 			reagent = 8928,
+		},
+		{	-- Instant VII
+			spells = {2842},
+			reagent = 21927,
 		},
 		{	-- Crippling
 			spells = {2842},
@@ -166,6 +209,14 @@ addon.spells = {
 		{	-- Deadly V
 			spells = {2842},
 			reagent = 20844,
+		},	
+		{	-- Deadly VI
+			spells = {2842},
+			reagent = 22053,
+		},	
+		{	-- Deadly VII
+			spells = {2842},
+			reagent = 22054,
 		},		
 		{	-- Wound
 			spells = {2842},
@@ -183,10 +234,15 @@ addon.spells = {
 			spells = {2842},
 			reagent = 10922,
 		},
+		{	-- Wound V
+			spells = {2842},
+			reagent = 22055,
+		},
 		{	--Vanish
 			spells = {
 					1856,
 					1857,
+					26889,
 				},
 			reagent = 5140,		-- Flash Powder
 		},
@@ -218,23 +274,31 @@ addon.spells = {
 				691,	-- Summon Felhunter
 				6353,	-- Soul Fire
 				17924,	-- Soul Fire (Rank 2)
+				27211,	-- Soul Fire (Rank 3)
+				30545,	-- Soul Fire (Rank 4)
+				29858,	-- Soulshatter
+				29893,	-- Ritual of Souls
 				693,	-- Create Soulstone (Minor)
 				20752,	-- Create Soulstone (Lesser)
 				20755,	-- Create Soulstone
 				20756,	-- Create Soulstone (Greater)
 				20757,	-- Create Soulstone (Major)
+				27238,	-- Create Soulstone (Rank 6)
 				6201,	-- Create Healthstone (Minor)
 				6202,	-- Create Healthstone (Lesser)
 				5699,	-- Create Healthstone
 				11729,	-- Create Healthstone (Greater)
 				11730,	-- Create Healthstone (Major)
+				27230,	-- Create Healthstone (Rank 6)
 				6366,	-- Create Firestone (Lesser)
 				17951,	-- Create Firestone
 				17952,	-- Create Firestone (Greater)				
 				17953,	-- Create Firestone (Major)
+				27250,	-- Create Firestone (Rank 5)
 				2362,	-- Create Spellstone
 				17727,	-- Create Spellstone (Greater)				
 				17728,	-- Create Spellstone (Major)
+				28172,	-- Create Spellstone (Rank 4)
 				1098,	-- Enslave Demon
 				11725,	-- Enslave Demon (Rank 2)
 				11726,	-- Enslave Demon (Rank 3)				
