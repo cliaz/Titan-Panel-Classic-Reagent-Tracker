@@ -407,7 +407,7 @@ function addon:BuyReagents()
     -- first up, let's fill our shopping cart
     -- for every spell we have
     --for i = 1, table.getn(possessed) do   -- TODO: remove and test
-    for i, buff in ipairs(possessed) do
+    for index, buff in ipairs(possessed) do
         -- if the option is set to autobuy the reagent for this spell
         if TitanGetVar(TITAN_REAGENTTRACKER_ID, "BuyReagent"..i) == 1 then
 
@@ -421,15 +421,16 @@ function addon:BuyReagents()
                 
                 -- Github Issue #3
                 if buff.reagentName == "Symbol of Kings" and TitanGetVar(TITAN_REAGENTTRACKER_ID, "Buy3StacksSymbolOfKings") then
-                   desiredCountOfReagent = desiredCountOfReagent * 3
-                end
+                    desiredCountOfReagent = desiredCountOfReagent * 3
+                end               
                 -- end Github Issue #3
                 
             end                                                                                        
 
             if debug == true then 
                 if buff.reagentName ~= nil then
-                    DEFAULT_CHAT_FRAME:AddMessage("Searching for "..buff.reagentName);
+                    DEFAULT_CHAT_FRAME:AddMessage("Aiming to buy "..desiredCountOfReagent.." of "..buff.reagentName);
+                    DEFAULT_CHAT_FRAME:AddMessage("Searching for "..buff.reagentName.." in bags");
                 end
             end
             -- First up, go add up all the units of this reagent we have
@@ -460,7 +461,7 @@ function addon:BuyReagents()
                         -- we don't have enough, let's buy some more
                         shoppingCart[tableIndex] = {buff.reagentName, desiredCountOfReagent-totalCountOfReagent}
                         tableIndex = tableIndex+1
-                        if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[i].reagentName.." to cart.") end
+                        if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[index].reagentName.." to cart.") end
                     end
                 end
             end
