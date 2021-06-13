@@ -469,14 +469,18 @@ function addon:BuyReagents()
                 _, _, _, _, _, _, _, desiredCountOfReagent = GetItemInfo(buff.reagentName)    -- get the max a stack of this reagent can be
                                                                                                 -- just so that we buy one stack only
                 
-                -- cater for buying multiple stacks of reagents
-                if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") then
-                    desiredCountOfReagent = desiredCountOfReagent * 1 
-                elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") then
-                    desiredCountOfReagent = desiredCountOfReagent * 2
-                elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") then
-                    desiredCountOfReagent = desiredCountOfReagent * 3
-                end   
+                -- bugfix for Issue #7 from Nihlolino, where GetItemInfo() returns a nil value for max item stack size, and subsequent 
+                -- arithmetic on a nil value fails. This shouldn't need to exist. A reagent can't stack to nil. 
+                if totalCountOfReagent ~= nil and desiredCountOfReagent ~= nil then
+                    -- cater for buying multiple stacks of reagents
+                    if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") then
+                        desiredCountOfReagent = desiredCountOfReagent * 1 
+                    elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") then
+                        desiredCountOfReagent = desiredCountOfReagent * 2
+                    elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") then
+                        desiredCountOfReagent = desiredCountOfReagent * 3
+                    end   
+                end
                             
             end                                                                                        
 
