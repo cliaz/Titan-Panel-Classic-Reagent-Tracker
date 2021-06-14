@@ -461,6 +461,7 @@ function addon:BuyReagents()
     for index, buff in ipairs(possessed) do
         -- if the option is set to autobuy the reagent for this spell
         if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") then
+            if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Reagent = "..buff.reagentName) end
             local totalCountOfReagent = 0
             local desiredCountOfReagent = 0
             if buff.reagentName ~= nil then
@@ -472,6 +473,7 @@ function addon:BuyReagents()
                 -- bugfix for Issue #7 from Nihlolino, where GetItemInfo() returns a nil value for max item stack size, and subsequent 
                 -- arithmetic on a nil value fails. This shouldn't need to exist. A reagent can't stack to nil. 
                 if totalCountOfReagent ~= nil and desiredCountOfReagent ~= nil then
+                    if debug == true then DEFAULT_CHAT_FRAME:AddMessage("totalCountOfReagent = "..totalCountOfReagent.." and desiredCountOfReagent = "..desiredCountOfReagent) end
                     -- cater for buying multiple stacks of reagents
                     if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") then
                         desiredCountOfReagent = desiredCountOfReagent * 1 
@@ -514,6 +516,7 @@ function addon:BuyReagents()
                 if totalCountOfReagent ~= nil and desiredCountOfReagent ~= nil then
                     if totalCountOfReagent >= desiredCountOfReagent then
                         -- we got enough not gonna buy any more
+                        if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Have enough "..buff.reagentName.." in bags. Not buying any more.\n") end
                     elseif totalCountOfReagent < desiredCountOfReagent then
                         -- we don't have enough, let's buy some more
                         shoppingCart[tableIndex] = {buff.reagentName, desiredCountOfReagent-totalCountOfReagent}
@@ -534,6 +537,7 @@ function addon:BuyReagents()
     for i = 1, table.getn(shoppingCart) do
         -- pass the Reagent name and the required count to the buying function
         if shoppingCart[i][1] ~= nil and shoppingCart[i][2] ~= nil then
+            if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Trying to buy "..shoppingCart[i][1]) end
             buyItemFromVendor(shoppingCart[i][1], shoppingCart[i][2])
         end
 	end	
@@ -556,6 +560,7 @@ function buyItemFromVendor(itemName, purchaseCount)
         -- if the merchant's item name matches the name of the item in the shopping cart
         if name == itemName then
             -- buy the item that we're currently looking at, and the amount
+            if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Vendor has "..itemName..", calling Blizzard API to buy "..purchaseCount) end
             BuyMerchantItem(index, purchaseCount)
         end
     end
