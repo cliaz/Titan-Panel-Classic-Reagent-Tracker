@@ -1,4 +1,4 @@
-# Titan-Panel-Classic-Reagent-Tracker
+# Titan Panel Classic [Reagent Tracker]
 
 ## Information
 This initially started as a retrofit / continunation of the original WoW [Titan Panel Reagent Tracker](https://www.curseforge.com/wow/addons/titan-reagents) addon by [L'ombra](https://www.curseforge.com/members/lombra/projects), maintained so that it functions for WoW Classic / TBC / etc.
