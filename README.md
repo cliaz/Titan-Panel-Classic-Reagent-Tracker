@@ -5,7 +5,7 @@ This initially started as a retrofit / continunation of the original WoW [Titan 
 Over time features have been added and the code base changed enough that it may no longer merge will with the Retail version.
 
 ## Hosting
-This addon is developed and maintained via this GitHub repo. Please submit issues and requests directly via GitHub.
+This addon is developed and maintained via [this GitHub repo](https://github.com/cliaz/Titan-Panel-Classic-Reagent-Tracker/). Please submit issues and requests directly via GitHub.
 It is mirrored on [CurseForge](https://www.curseforge.com/wow/addons/titan-panel-reagent-tracker) and [Wago](https://addons.wago.io/addons/titan-panel-classic-reagent-tracker), so should be accessible via both the [CurseForge](https://download.curseforge.com/) and [WowUp](https://wowup.io/) clients.
 For what it's worth, I recommend the WowUp client.
 
