@@ -2,7 +2,7 @@
 
 ## Information
 This initially started as a retrofit / continunation of the original WoW [Titan Panel Reagent Tracker](https://www.curseforge.com/wow/addons/titan-reagents) addon by [L'ombra](https://www.curseforge.com/members/lombra/projects), maintained so that it functions for WoW Classic / TBC / etc.
-Over time features have been added and the code base changed enough that it may no longer merge will with the Retail version.
+Over time features have been added and the code base changed enough that it may no longer merge well with the Retail version.
 
 ## Hosting
 This addon is developed and maintained via [this GitHub repo](https://github.com/cliaz/Titan-Panel-Classic-Reagent-Tracker/). Please submit issues and requests directly via GitHub.
