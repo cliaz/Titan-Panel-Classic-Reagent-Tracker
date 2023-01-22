@@ -545,7 +545,7 @@ function addon:BuyReagents()
                 -- for every bag slot
                 for bagID = 0, 4 do
                     -- for even item slot in that bag
-                    for slot = 1, GetContainerNumSlots(bagID) do
+                    for slot = 1, C_Container.GetContainerNumSlots(bagID) do
                         -- get the item name and quantity of each item in that slot
                         local bagItemName, bagItemCount = getItemNameItemCountFromBag(bagID, slot);
 
@@ -637,13 +637,15 @@ end
 -- **************************************************************************
 --]]
 function getItemNameItemCountFromBag(bagNumber, slotNumber)
-    -- get the count and link of the item in this bag slot
-    local _, itemCount, _, _, _, _, itemLink = GetContainerItemInfo(bagNumber, slotNumber);
+    -- get the count and ID of the item in this bag slot
+    local info = C_Container.GetContainerItemInfo(bagNumber, slotNumber);
+    local itemCount = info and info.stackCount;
+    local itemID = info and info.itemID;
     local itemName
 
-    -- if an item is actually there, get the name of the item, instead of the link
-    if itemCount ~= nil and itemLink ~= nil then
-        itemName = GetItemInfo(itemLink)
+    -- if an item is actually there, get the name of the item, instead of the ID
+    if info and itemID then
+        itemName = GetItemInfo(itemID)
     end
 
 	if itemName ~= nil then
