@@ -1,7 +1,7 @@
-## Interface: 30400
-## Title: Titan Panel Classic [|cffeda55fReagent Tracker|r] |cff00aa003.0.0.30400|r
+## Interface: 30401
+## Title: Titan Panel Classic [|cffeda55fReagent Tracker|r] |cff00aa003.0.2.30401|r
 ## Author: cliaz
-## Version: 3.0.0.30400
+## Version: 3.0.2.30401
 ## SavedVariables: ShowSpellIcons
 ## Notes: Monitors and buys spell reagents.
 ## Dependencies: TitanClassic
