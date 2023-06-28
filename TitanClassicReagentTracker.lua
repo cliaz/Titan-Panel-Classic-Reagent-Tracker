@@ -105,7 +105,7 @@ addon.label = text
 
 addon.registry = {
     id = TITAN_REAGENTTRACKER_ID,
-	version = GetAddOnMetadata("TitanReagentTracker", "Version"),   -- the the value of Version variable from the .toc
+	version = GetAddOnMetadata("TitanClassicReagentTracker", "Version"),   -- the the value of Version variable from the .toc
 	menuText = "Reagent Tracker",
 	tooltipTitle = "Reagent Tracker Info",
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
