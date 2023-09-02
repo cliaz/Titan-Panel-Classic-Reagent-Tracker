@@ -1,0 +1,13 @@
+## Interface: 30402
+## Title: Titan Panel Classic [|cffeda55fReagent Tracker|r] |cff00aa003.0.3.30402|r
+## Author: cliaz (Murd)
+## Version: 3.0.3
+## SavedVariables: ShowSpellIcons
+## Notes: Monitors and buys spell reagents.
+## Dependencies: TitanClassic
+## X-Category: Interface Enhancements
+## X-Child-Of: TitanClassic
+## X-Credits: L'ombra, Farwalker
+
+spellData.lua
+TitanClassicReagentTracker.lua
