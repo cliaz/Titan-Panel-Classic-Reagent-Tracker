@@ -1,7 +1,7 @@
-## Interface: 11404
-## Title: Titan Panel Classic [|cffeda55fReagent Tracker|r] |cff00aa003.0.4.11404|r
+## Interface: 11501
+## Title: Titan Panel Classic [|cffeda55fReagent Tracker|r] |cff00aa003.0.5.11501|r
 ## Author: cliaz (Murd)
-## Version: 3.0.4
+## Version: 3.0.5
 ## SavedVariables: ShowSpellIcons
 ## Notes: Monitors and buys spell reagents
 ## Dependencies: TitanClassic
