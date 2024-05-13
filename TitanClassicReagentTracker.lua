@@ -159,6 +159,7 @@ end)
 -- **************************************************************************
 --]]
 function addon:RefreshReagents()
+    if debug == true then DEFAULT_CHAT_FRAME:AddMessage("|cffeda55fPlayer knows the following spells:") end
 	for i, buff in ipairs(spells) do
 		local possessed = possessed[i]
         wipe(possessed) -- TODO: wtf is this doing? Potentially remove, but haven't fully tested.
@@ -176,6 +177,7 @@ function addon:RefreshReagents()
             -- spells that you know into the tracking table, and as you learn more it shows more. The old implementation
             -- would load all possible ones, and grey out ones that you didn't know yet.
 			if IsSpellKnown(spell) then
+                if debug == true then DEFAULT_CHAT_FRAME:AddMessage("|cffeda55f - "..spell) end
                 possessed.reagentName = reagentName
 			    possessed.reagentIcon = GetItemIcon(reagentID)
                 possessed.spellIcon = GetSpellTexture(spell)
