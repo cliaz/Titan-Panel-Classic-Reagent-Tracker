@@ -500,7 +500,6 @@ function addon:BuyReagents()
 
     -- first up, let's fill our shopping cart
     -- for every spell we have
-    --for i = 1, table.getn(possessed) do   -- TODO: remove and test
     for index, buff in ipairs(possessed) do
         -- if the option is set to autobuy the reagent for this spell
         if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack") then
