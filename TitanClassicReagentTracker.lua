@@ -9,14 +9,17 @@ local _G = getfenv(0);
 local TITAN_REAGENTTRACKER_ID = "ReagentTracker"
 
 -- ******************************** Variables *******************************
-local L = LibStub("AceLocale-3.0"):GetLocale("TitanClassic", true)
+--local L = LibStub("AceLocale-3.0"):GetLocale("TitanClassic", true)    -- my initial code
+local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)            -- take from TitanStater.lua example
+
 
 local debug = false -- setting this to true will enable a lot of debug messages being output on the wow screen
 local playerClass = select(2, UnitClass("player"))
 local possessed = {}    -- store spells that the player knows here
 -- note: look at addon.registry to see variables saved between restarts
 
-local _, addon = ...
+local _, addon = ...                                                      -- my initial code
+--local add_on = ...                                                      -- take from TitanStater.lua example
 
 local spells = addon.spells[playerClass]    -- generate a list of all possible spells that a player's Class can know, and associated reagents
 if not spells then return end   -- don't continue addon load if there are no reagents associated to our character class
@@ -105,7 +108,8 @@ addon.label = text
 
 addon.registry = {
     id = TITAN_REAGENTTRACKER_ID,
-	version = GetAddOnMetadata("TitanClassicReagentTracker", "Version"),   -- the the value of Version variable from the .toc
+	--version = GetAddOnMetadata("TitanClassicReagentTracker", "Version"),   -- the the value of Version variable from the .toc
+    version = C_AddOns.GetAddOnMetadata(addon, "Version")                  -- format taken from TitanStater.lua example
 	menuText = "Reagent Tracker",
 	tooltipTitle = "Reagent Tracker Info",
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
