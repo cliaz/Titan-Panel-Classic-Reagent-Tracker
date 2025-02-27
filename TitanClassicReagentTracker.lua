@@ -24,6 +24,16 @@ local _, addon = ...                                                      -- my 
 local spells = addon.spells[playerClass]    -- generate a list of all possible spells that a player's Class can know, and associated reagents
 if not spells then return end   -- don't continue addon load if there are no reagents associated to our character class
 -- ******************************** Functions *******************************
+local function num_out(num) -- debug to output shorter float values
+	local res = ""
+	if type(num) == 'number' then
+		res = string.format("%.2f", num)
+	else
+		res = num
+	end
+	return res
+end
+
 local function dbg_out(msg) -- debug output
 	local color = "|cffeda55f"
 	print(color.."RT "..msg.."|r")
