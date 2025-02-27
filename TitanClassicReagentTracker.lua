@@ -24,8 +24,10 @@ local _, addon = ...                                                      -- my 
 local spells = addon.spells[playerClass]    -- generate a list of all possible spells that a player's Class can know, and associated reagents
 if not spells then return end   -- don't continue addon load if there are no reagents associated to our character class
 -- ******************************** Functions *******************************
-
-
+local function dbg_out(msg) -- debug output
+	local color = "|cffeda55f"
+	print(color.."RT "..msg.."|r")
+end
 
 --[[
 -- **************************************************************************
@@ -163,7 +165,8 @@ end)
 -- **************************************************************************
 --]]
 function addon:RefreshReagents()
-    if debug == true then DEFAULT_CHAT_FRAME:AddMessage("|cffeda55fPlayer knows the following spells:") end
+    if debug == true then dbg_out("Player knows the following spells:") end
+---[[
 	for i, buff in ipairs(spells) do
 		local possessed = possessed[i]
         wipe(possessed) -- TODO: wtf is this doing? Potentially remove, but haven't fully tested.
@@ -181,7 +184,7 @@ function addon:RefreshReagents()
             -- spells that you know into the tracking table, and as you learn more it shows more. The old implementation
             -- would load all possible ones, and grey out ones that you didn't know yet.
 			if IsSpellKnown(spell) then
-                if debug == true then DEFAULT_CHAT_FRAME:AddMessage("|cffeda55f - "..spell) end
+                if debug == true then dbg_out(" - "..spell) end
                 possessed.reagentName = reagentName
 			    possessed.reagentIcon = GetItemIcon(reagentID)
                 possessed.spellIcon = GetSpellTexture(spell)
@@ -493,13 +496,13 @@ function addon:BuyReagents()
 
     -- print list of all reagents that the addon has determined that the player needs, based on spells he/she knows
     if debug == true then
-        DEFAULT_CHAT_FRAME:AddMessage("Player knows spells requiring the following reagents:");
+        dbg_out("Player knows spells requiring the following reagents:");
         for i, buff in ipairs(possessed) do
             if buff.reagentName ~= nil then
-                DEFAULT_CHAT_FRAME:AddMessage("|cffeda55f - "..buff.reagentName);
+                dbg_out(" - "..buff.reagentName);
             end
         end
-        DEFAULT_CHAT_FRAME:AddMessage("\n");
+        dbg_out("\n");
     end
 
     -- first up, let's fill our shopping cart
@@ -507,7 +510,7 @@ function addon:BuyReagents()
     for index, buff in ipairs(possessed) do
         -- if the option is set to autobuy the reagent for this spell
         if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack") then
-            if debug == true then DEFAULT_CHAT_FRAME:AddMessage("|cffeda55fReagent = "..buff.reagentName) end
+            if debug == true then dbg_out("|cffeda55fReagent = "..buff.reagentName) end
             local totalCountOfReagent = 0
             local desiredCountOfReagent = 0
             local maxStackOfReagent = 0
@@ -521,7 +524,7 @@ function addon:BuyReagents()
                 -- bugfix for Issue #7 from Nihlolino, where GetItemInfo() returns a nil value for max item stack size, and subsequent
                 -- arithmetic on a nil value fails. This shouldn't need to exist. A reagent can't stack to nil.
                 if totalCountOfReagent ~= nil and maxStackOfReagent ~= nil then
-                    if debug == true then DEFAULT_CHAT_FRAME:AddMessage("totalCountOfReagent = "..totalCountOfReagent.." and desiredCountOfReagent = "..desiredCountOfReagent) end
+                    if debug == true then dbg_out("totalCountOfReagent = "..totalCountOfReagent.." and desiredCountOfReagent = "..desiredCountOfReagent) end
                     -- cater for buying multiple stacks of reagents
                     if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") then
                         desiredCountOfReagent = maxStackOfReagent * 1
@@ -540,8 +543,8 @@ function addon:BuyReagents()
 
             if debug == true then
                 if buff.reagentName ~= nil then
-                    DEFAULT_CHAT_FRAME:AddMessage("Aiming to buy "..desiredCountOfReagent.." of "..buff.reagentName);
-                    DEFAULT_CHAT_FRAME:AddMessage("Searching for "..buff.reagentName.." in bags");
+                    dbg_out("Aiming to buy "..desiredCountOfReagent.." of "..buff.reagentName);
+                    dbg_out("Searching for "..buff.reagentName.." in bags");
                 end
             end
             -- First up, go add up all the units of this reagent we have
@@ -562,18 +565,18 @@ function addon:BuyReagents()
                         end
                     end
                 end
-                if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Found "..totalCountOfReagent.." "..buff.reagentName.." in bags") end
+                if debug == true then dbg_out("Found "..totalCountOfReagent.." "..buff.reagentName.." in bags") end
                 -- enclosing the entire reagent count vs desired reagent comparison in a not-nil if statement for Nihlolino's reported bug
                 -- this shouldn't need to exist. A reagent can't stack to nil.
                 if totalCountOfReagent ~= nil and desiredCountOfReagent ~= nil and maxStackOfReagent ~= nil then
                     if totalCountOfReagent >= desiredCountOfReagent then
                         -- we got enough not gonna buy any more
-                        if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Have enough "..buff.reagentName.." in bags. Not buying any more.\n\n") end
+                        if debug == true then dbg_out("Have enough "..buff.reagentName.." in bags. Not buying any more.\n\n") end
                     elseif totalCountOfReagent < desiredCountOfReagent then
                         -- we don't have enough, let's buy some more
                         shoppingCart[tableIndex] = {buff.reagentName, desiredCountOfReagent-totalCountOfReagent, maxStackOfReagent}
                         tableIndex = tableIndex+1
-                        if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[index].reagentName.." to cart.") end
+                        if debug == true then dbg_out("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[index].reagentName.." to cart.") end
                     end
                 end
             end
@@ -590,7 +593,7 @@ function addon:BuyReagents()
     for i = 1, table.getn(shoppingCart) do
         -- pass the Reagent name and the required count to the buying function
         if shoppingCart[i][1] ~= nil and shoppingCart[i][2] ~= nil and shoppingCart[i][3] ~= nil then
-            if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Trying to buy "..shoppingCart[i][1]) end
+            if debug == true then dbg_out("Trying to buy "..shoppingCart[i][1]) end
             buyItemFromVendor(shoppingCart[i][1], shoppingCart[i][2], shoppingCart[i][3])
         end
 	end
@@ -613,17 +616,17 @@ function buyItemFromVendor(itemName, purchaseCount, maxStackSize)
         -- if the merchant's item name matches the name of the item in the shopping cart
         if name == itemName then
             -- buy the item that we're currently looking at, and the amount
-            if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Vendor has "..itemName..", calling Blizzard API to buy "..purchaseCount) end
+            if debug == true then dbg_out("Vendor has "..itemName..", calling Blizzard API to buy "..purchaseCount) end
 
             -- Github issue #9: Blizzard does not support buying of multiple stacks in one API call.
             -- break down the purchasing into <= single stack purchases
             while (purchaseCount / maxStackSize) > 1 do
-                if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Buying "..maxStackSize..", "..purchaseCount-maxStackSize.." remaining") end
+                if debug == true then dbg_out("Buying "..maxStackSize..", "..purchaseCount-maxStackSize.." remaining") end
                 BuyMerchantItem(index, maxStackSize)
                 purchaseCount = purchaseCount - maxStackSize
             end
             if purchaseCount <= maxStackSize then
-                if debug == true then DEFAULT_CHAT_FRAME:AddMessage("Buying "..purchaseCount..", "..purchaseCount-purchaseCount.." remaining") end
+                if debug == true then dbg_out("Buying "..purchaseCount..", "..purchaseCount-purchaseCount.." remaining") end
                 BuyMerchantItem(index, purchaseCount)
             end
         end
