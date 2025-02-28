@@ -7,22 +7,29 @@
 -- ******************************** Constants *******************************
 local _G = getfenv(0);
 local TITAN_REAGENTTRACKER_ID = "ReagentTracker"
-
+local RT_BUTTON_NAME = "TitanPanelReagentTrackerButton"
+local REAGENT_PRE = "TitanPanelReagentTracker"
+local addon_frame = {} -- will be set later during 'on load' as the main addon frame with scripts
 -- ******************************** Variables *******************************
 --local L = LibStub("AceLocale-3.0"):GetLocale("TitanClassic", true)    -- my initial code
 local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)            -- take from TitanStater.lua example
 
+-- setting this to true will enable a lot of debug messages being output on the wow chat
+local debug = true -- true false 
 
-local debug = false -- setting this to true will enable a lot of debug messages being output on the wow screen
+-- Get the toon class so we know which reagents to track from spells table
 local playerClass = select(2, UnitClass("player"))
+
 local possessed = {}    -- store spells that the player knows here
+local buttons = {}      -- store reagent frames created to show icon - count pairs
+
 -- note: look at addon.registry to see variables saved between restarts
 
 local _, addon = ...                                                      -- my initial code
 --local add_on = ...                                                      -- take from TitanStater.lua example
 
 local spells = addon.spells[playerClass]    -- generate a list of all possible spells that a player's Class can know, and associated reagents
-if not spells then return end   -- don't continue addon load if there are no reagents associated to our character class
+if not spells then return end               -- don't continue addon load if there are no reagents associated to our character class
 -- ******************************** Functions *******************************
 local function num_out(num) -- debug to output shorter float values
 	local res = ""
@@ -672,3 +679,11 @@ function getItemNameItemCountFromBag(bagNumber, slotNumber)
 		return "", itemCount;
 	end
 end
+
+--
+--=== Move the frame creation here for readability and make use of local functions
+--
+-- create a frame to handle all the things
+-- this actually seems to be what drives the functions / logic in the addon
+-- without it, nothing works
+addon_frame = CreateFrame("Button", "TitanPanelReagentTrackerButton", CreateFrame("Frame", nil, UIParent), "TitanPanelComboTemplate") 
