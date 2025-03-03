@@ -721,3 +721,27 @@ addon_frame.registry = {
 		ShowLabelText = false,  -- disable showing the text label otherwise it messes with spacing the icon - count pairs
 	}
 }
+
+-- This creates a frame and saved pairs set [i] for every entry in spells for the given toon class.
+-- This covers all the spells with reagents the class can learn at max level. 
+-- The spells are grouped in spellData.lua by reagent type, meaning the minimum number of buttons are created.
+-- As the toon learns the spells they become visible in the addon UI.
+--
+-- Setting the savedVariables here so Titan will store them per toon.
+-- They will be created for a new toon; pulled from the Titan saved vars if already set.
+for i = 1, #spells do
+	--local prev = i - 1                               -- todo: can probably remove this
+    --buttons[i] = newReagent(addon_frame, i, prev)    -- todo: can probably remove this
+    buttons[i] = newReagent(addon_frame, i)
+    -- create variables in the addon.registry so that they can be set later by the user
+    -- to save the variables across game reload
+    addon_frame.registry.savedVariables["TrackReagent"..i] = true
+    addon_frame.registry.savedVariables["BuyReagent"..i] = false
+    addon_frame.registry.savedVariables["Reagent"..i.."OneStack"] = false
+    addon_frame.registry.savedVariables["Reagent"..i.."TwoStack"] = false
+    addon_frame.registry.savedVariables["Reagent"..i.."ThreeStack"] = false
+    addon_frame.registry.savedVariables["Reagent"..i.."FourStack"] = false
+    addon_frame.registry.savedVariables["Reagent"..i.."FiveStack"] = false
+    addon_frame.registry.savedVariables["Reagent"..i.."NoStacks"] = false
+	possessed[i] = {}
+end
