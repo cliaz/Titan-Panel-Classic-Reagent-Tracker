@@ -704,3 +704,20 @@ end
 -- this actually seems to be what drives the functions / logic in the addon
 -- without it, nothing works
 addon_frame = CreateFrame("Button", "TitanPanelReagentTrackerButton", CreateFrame("Frame", nil, UIParent), "TitanPanelComboTemplate") 
+-- Update the registry so Titan knows what to do
+addon_frame.registry = {
+    id = TITAN_REAGENTTRACKER_ID,
+	version = GetAddOnMetadata(add_on, "Version"),   -- the the value of Version variable from the .toc
+	menuText = "Reagent Tracker",
+	buttonTextFunction = UpdateText, -- For Titan update button
+	tooltipTitle = "Reagent Tracker Info",
+	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
+	icon = "Interface\\AddOns\\TitanClassicReagentTracker\\Tracking",
+	iconWidth = 16,
+	-- without the same in controlVariables, the user is not shown the option to change
+	savedVariables = {
+        ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
+		ShowIcon = 1,           -- force the plugin icon to be shown
+		ShowLabelText = false,  -- disable showing the text label otherwise it messes with spacing the icon - count pairs
+	}
+}
