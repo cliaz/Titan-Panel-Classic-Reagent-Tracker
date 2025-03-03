@@ -52,25 +52,42 @@ end
 -- DESC : Creates a Button Frame to display a reagent in Titan Panel
 -- VARS : parent = the addon,
         : i = button ID
+-- RET  : btn = the button frame, populated with default icon and count, which will be stored in the buttons table
+-- NOTE : The way this is called means that a frame is made for every entry in the spell table (as per spellData.lua)
+--      : for this class (priest, mage, rogue etc.), and as the player learns spells, the reagents for those spells
+--      : are tracked and displayed.
 -- **************************************************************************
 --]]
 local function newReagent(parent, i)
 
-	local btn = CreateFrame("Button", "TitanPanelReagentTrackerReagent"..i, parent, "TitanPanelChildButtonTemplate")
-	btn:SetSize(16, 16)
-	btn:SetPoint("LEFT")
-	btn:SetPushedTextOffset(0, 0)
+	local reagent_name = REAGENT_PRE..i
+	local btn = CreateFrame("Button", reagent_name, parent)
+--	btn:SetPoint("LEFT", "TitanPanelReagentTrackerButtonText", "LEFT", 0,0) -- relative to the addon or prev tracker
+--	btn:SetPoint("LEFT")
 
-	local icon = btn:CreateTexture()
-	icon:SetSize(16, 16)
-	icon:SetPoint("LEFT")
-	btn:SetNormalTexture(icon)
-	btn.icon = icon
+	btn.icon = btn:CreateTexture()                      -- create the icon (texture) holder
+	btn.icon:SetSize(16, 16)                            -- expect an icon of this size
+    btn.icon:SetPoint("LEFT", btn, "LEFT", 0, 0)        -- Place leftmost and on top of the frame
 
-	local text = btn:CreateFontString(nil, nil, "GameFontHighlightSmall")
-	text:SetPoint("LEFT", icon, "RIGHT", 2, 1)
-	text:SetJustifyH("LEFT")
-	btn:SetFontString(text)
+	-- create count (text) holder
+	btn.text = btn:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")   -- requires some font...
+	btn.text:SetPoint("LEFT", btn.icon, "RIGHT", 0, 0)                          -- right of the icon
+
+	btn.icon:SetTexture(134400)     -- Default : "?" icon, which will later be set with the reagent icon
+	btn.text:SetText("00")          -- Default : no count
+
+	if debug == true then
+		---[[
+		dbg_out("newReagent"
+		.." "..tostring(i)..""
+		.." "..tostring(reagent_name)..""
+		.." "..tostring(btn:IsShown())..""
+		--.." "..num_out(iw)..""
+		.." "..btn.icon:GetTexture()..""
+		.." "..btn.text:GetText()..""
+		)
+		--]]
+	end
 
 	return btn
 end
