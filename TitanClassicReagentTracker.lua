@@ -3,6 +3,7 @@
 -- *
 -- * By: Initial fork of Titan Reagent by L'ombra. Retrofitted for WoW Classic by Farwalker & cliaz
 -- **************************************************************************
+local add_on, addon = ...   -- get the addon name and namespace
 
 -- ******************************** Constants *******************************
 local _G = getfenv(0);
@@ -11,8 +12,7 @@ local RT_BUTTON_NAME = "TitanPanelReagentTrackerButton"
 local REAGENT_PRE = "TitanPanelReagentTracker"
 local addon_frame = {} -- will be set later during 'on load' as the main addon frame with scripts
 -- ******************************** Variables *******************************
---local L = LibStub("AceLocale-3.0"):GetLocale("TitanClassic", true)    -- my initial code
-local L = LibStub("AceLocale-3.0"):GetLocale(TITAN_ID, true)            -- take from TitanStater.lua example
+local media = nil -- set at OnShow to take advantage of a Titan lib
 
 -- setting this to true will enable a lot of debug messages being output on the wow chat
 local debug = true -- true false 
@@ -25,11 +25,18 @@ local buttons = {}      -- store reagent frames created to show icon - count pai
 
 -- note: look at addon.registry to see variables saved between restarts
 
-local _, addon = ...                                                      -- my initial code
---local add_on = ...                                                      -- take from TitanStater.lua example
-
 local spells = addon.spells[playerClass]    -- generate a list of all possible spells that a player's Class can know, and associated reagents
 if not spells then return end               -- don't continue addon load if there are no reagents associated to our character class
+
+-- looks funky but we need to calc width in pixels of " " (space) in the current Titan font
+addon.font = "GameFontHighlightSmall"
+addon.font_calc = {} -- fontstring set below after addon frame created
+addon.font_calc_width = 0 -- set below after addon frame created
+
+addon.label_default = "Reagent Tracker"
+addon.reagent_width_total = 0 -- holds width of all visible reagent icon-count pairs
+
+
 -- ******************************** Functions *******************************
 local function num_out(num) -- debug to output shorter float values
 	local res = ""
@@ -44,6 +51,89 @@ end
 local function dbg_out(msg) -- debug output
 	local color = "|cffeda55f"
 	print(color.."RT "..msg.."|r")
+end
+--[[
+-- **************************************************************************
+-- NAME : UpdateFont()
+-- DESC : Calc the width in pixels of a " " (space) in the current Titan font
+-- VARS : 
+-- NOTE : Key calc to create plugin text.
+-- **************************************************************************
+--]]
+local function UpdateFont()
+	-- Once Titan is loaded per the TOC dependency, we can use one of the libs it includes
+	if media == nil then
+		media = LibStub("LibSharedMedia-3.0")
+	else
+		-- don't slam LibStub :)
+	end
+	local newfont = media:Fetch("font", TitanPanelGetVar("FontName"))
+	if newfont == addon.font then
+		-- no work needed
+	else
+		-- seems real funky :)
+		-- Calc the width of a "0" in the font
+		addon.font_calc:SetFont(newfont, TitanPanelGetVar("FontSize"))
+		addon.font_calc_width = addon.font_calc:GetWidth()
+		addon.font = newfont
+		
+		-- also set the font for the label
+	end
+end
+
+--[[
+-- **************************************************************************
+-- NAME : UpdateText()
+-- DESC : Create the plugin label and text for Titan (TitanPanelButton_UpdateButton)
+-- VARS : 
+-- NOTE : Key to create plugin text that will sit behind the reagent info.
+-- **************************************************************************
+--]]
+local function UpdateText()
+
+	--====
+	--[[
+	This section is the key trick / hack allowing the use of children frames.
+	Titan calculates the plugin width for a combo based on the :
+	- width of icon, if shown
+	- width of label + plugin text
+	So make the plugin text a string of spaces the same width as the children we want visible.
+	
+	WoW places child frames on top of the parent which helps us.
+	--]]
+	UpdateFont()
+
+	local spaces = " " -- buffer
+	addon.font_calc:SetText(" ") -- only way to get width on UI
+	-- a touch dangerous, at least there is a max :)
+	for idx = 1, 50 do 
+		spaces = spaces.." "
+		addon.font_calc:SetText(spaces)
+		if addon.font_calc:GetWidth() >= addon.reagent_width_total then
+			break
+		else
+			-- add another space
+		end
+	end
+	
+	-- The label (spaces) *should* cover the reagents now...
+	if debug then
+		---[[
+		dbg_out("UpdateText"
+		.." "..num_out(addon.font_calc_width)..""
+		.." "..num_out(addon.reagent_width_total)..""
+		.." "..tostring(string.len(spaces))..""
+		--.." "..tostring(addon.font)..""
+		.." "..num_out(TitanPanelReagentTrackerButton:GetWidth())..""
+		.." "..num_out(TitanPanelReagentTrackerButtonText:GetWidth())..""
+		)
+		--]]
+	end
+
+	addon.tracker_text_buff = spaces
+	--===
+
+	return "", addon.tracker_text_buff
 end
 
 --[[
@@ -182,19 +272,26 @@ end
 -- **************************************************************************
 --]]
 function addon:UpdateButton()
-	local tracking
+---[[
+	local tracking = false
 	local totalWidth = 0
 	local offset = 0
+	local ph = TitanPanelReagentTrackerButton:GetHeight() -- poor man's Titan height check :)
+
+	local reagent_prev = ""
+	local buttonText = _G[RT_BUTTON_NAME .. TITAN_PANEL_TEXT]
+	local reagent_prev = buttonText -- first one only
+	local reagent_begin = "LEFT"    -- overlap by forcing the first one to align left; then switch to right
+	local offset_x = 0  -- use spaces around numbers to get a better width
+	local offset_y = -1 -- Seems a shift down is needed...
+	
 	for i, buff in pairs(possessed) do
 		local button = buttons[i]
-		local nextButton = buttons[i + 1]
-		local nextAnchor = "LEFT"
-		local nextOffset = 0
+		local btn_width = 0 -- icon + count
 
         -- show/hide reagent trackers
 		if buff.reagentName and TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..i) then
 			local icon = button.icon
-			button:Show()
 			-- display spell or reagent icon
 			if TitanGetVar(TITAN_REAGENTTRACKER_ID, "ShowSpellIcons") then
 				icon:SetTexture(buff.spellIcon)
@@ -203,43 +300,65 @@ function addon:UpdateButton()
 			end
 
 			-- current number of reagents
-			button:SetText(GetItemCount(buff.reagentName))
+			button.text:SetText(" "..GetItemCount(buff.reagentName).." ")
+			local iw = button.icon:GetWidth() -- could assume 16
+			local tw = button.text:GetWidth()
+			btn_width = iw + tw -- for this reagent; will be added to a running total
 
-            -- if there is another spell / button left in the array, change the anchor position for it and set
-            -- an appropriate offset
-			if nextButton then
-				nextAnchor = "RIGHT"
-				nextOffset = 6
+			button:SetSize(btn_width, ph)
+			
+			if debug then
+				---[[
+				dbg_out("UpdateButton SHOW"
+				.." "..tostring(i)..""
+				--.." "..tostring(button:GetName())..""
+				.." '"..tostring(button.text:GetText()).."'"
+				.." "..tostring(button:IsShown())..""
+				--.." "..num_out(iw)..""
+				.." "..num_out(tw)..""
+				.." "..num_out(btn_width)..""
+				.." "..num_out(button:GetWidth())..""
+				)
+				dbg_out(">> UpdateButton"
+				.." < "..tostring(reagent_prev and reagent_prev:GetName() or "nyl")..""
+				.." "..num_out(offset_x)..""
+				.." "..num_out(offset_y)..""
+				)
+				--]]
 			end
 
-            button:SetWidth(icon:GetWidth() + button:GetTextWidth())    -- set the button width based off of
-                                                                        -- icon size and text size.
-			totalWidth = totalWidth + button:GetWidth() -- add up all widths of buttons
+			button:ClearAllPoints()
+			button:SetPoint("LEFT", reagent_prev, reagent_begin, offset_x, offset_y) -- relative to the addon or prev tracker
+			button:Show()
 
-            offset = offset + 1 -- without this, the titan panel segment for this addon becomes too small, and the next
-                                -- titan panel segment encroaches onto this addon
+			-- next reagent is to the right of this one
+			reagent_begin = "RIGHT" 
+			reagent_prev = _G[REAGENT_PRE..i]
+
 			tracking = true
 		else
+
+			if debug then
+				dbg_out("UpdateButton HIDE"
+				.." "..tostring(button:GetName())..""
+				)
+			end
+			
+			button:ClearAllPoints();
 			button:Hide()
 		end
-
-		-- fix offset to next reagent tracker
-		if nextButton then
-			nextButton:SetPoint("LEFT", button, nextAnchor, nextOffset, 0)
-		end
+		
+		totalWidth = totalWidth + btn_width
 	end
 
-    -- show addon label (Reagent Tracker) if no tracking is enabled
-	local none = self.label
-	if tracking then
-		none:Hide()
-	else
-		none:Show()
-		totalWidth = none:GetWidth() + 8
-	end
+	-- adjust width so other Titan plugins are properly offset
+	addon.reagent_width_total = totalWidth
 
-	-- adjust width so other plugins are properly offset
-	self:SetWidth(totalWidth + ((offset - 1) * 8))
+	if debug then
+		dbg_out("UpdateButton wrap"
+		.." "..num_out(totalWidth)..""
+		)
+	end
 end
 
 --[[
@@ -650,6 +769,13 @@ end
 -- this actually seems to be what drives the functions / logic in the addon
 -- without it, nothing works
 addon_frame = CreateFrame("Button", "TitanPanelReagentTrackerButton", CreateFrame("Frame", nil, UIParent), "TitanPanelComboTemplate") 
+
+addon.font_calc = addon_frame:CreateFontString(nil, nil, addon.font)
+addon.font_calc:SetText(" ")
+addon.font_calc_width = addon.font_calc:GetWidth()
+
+addon.label_fontstr = addon_frame:CreateFontString(nil, nil, addon.font)
+
 -- addon frame scripts
 addon_frame:SetScript("OnShow", function(self)
 	OnShow(self);
