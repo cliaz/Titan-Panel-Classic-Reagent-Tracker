@@ -52,6 +52,7 @@ local function dbg_out(msg) -- debug output
 	local color = "|cffeda55f"
 	print(color.."RT "..msg.."|r")
 end
+
 --[[
 -- **************************************************************************
 -- NAME : UpdateFont()
@@ -236,18 +237,17 @@ end
 --]]
 function addon:RefreshReagents()
     if debug == true then dbg_out("Player knows the following spells:") end
----[[
 	for i, buff in ipairs(spells) do
 		local possessed = possessed[i]
-        wipe(possessed) -- TODO: wtf is this doing? Potentially remove, but haven't fully tested.
+        wipe(possessed) -- clear the array (because we are reusing it), instead of creating a new one each time.
+                        -- this saves some cycles as we don't call the garbage collector as often
 
         -- for every spell, get the reagent info
 		for index, spell in ipairs(buff.spells) do
 			local reagentID = buff.reagent
 			local reagentName = GetItemInfo(reagentID)
-            if not reagentName then
-				queryTooltip:SetHyperlink("item:"..reagentID)
-			return
+            if not reagentName then     -- just in case there are spells in spellData.lua with reagents that aren't in the game (yet)
+				return
 			end
 
             -- if we know the spell, track the reagent. The way this works is that it only loads reagents for
@@ -478,7 +478,8 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 	-- level 2
 	if _G["L_UIDROPDOWNMENU_MENU_LEVEL"] == 2 then
 		if _G["L_UIDROPDOWNMENU_MENU_VALUE"] == "Autobuy Options" then
-			TitanPanelRightClickMenu_AddTitle(L["TITAN_PANEL_OPTIONS"], _G["L_UIDROPDOWNMENU_MENU_LEVEL"])
+--			TitanPanelRightClickMenu_AddTitle(L["TITAN_PANEL_OPTIONS"], _G["L_UIDROPDOWNMENU_MENU_LEVEL"])
+			TitanPanelRightClickMenu_AddTitle("Options", _G["L_UIDROPDOWNMENU_MENU_LEVEL"])
 
             for index, buff in ipairs(possessed) do
                 info = {};
