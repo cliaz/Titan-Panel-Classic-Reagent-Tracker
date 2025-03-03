@@ -1,8 +1,19 @@
 -- **************************************************************************
 -- * TitanClassicReagentTracker.lua
 -- *
--- * By: Initial fork of Titan Reagent by L'ombra. Retrofitted for WoW Classic by Farwalker & cliaz
+-- * By: Initial fork of Titan Reagent by L'ombra. Retrofitted for Classic by cliaz / Murd,
+-- *     with a lot of help from the Titan Panel Development Team (Urnati) rewriting this to
+-- *     support Titan Panel v8 
 -- **************************************************************************
+
+-- High level functional overview:
+-- In broad terms, this addon:
+--  - builds a list of all spells that your player class can know, grouped by reagent (see spellData.lua)
+--  - checks which spells a player knows, and the reagents for those spells
+--  - does some funky stuff to display the reagents in the Titan Panel bar using labels and font pixel calculations
+--  - allows the player to track reagents for spells they know, and to buy those reagents from a vendor
+
+
 local add_on, addon = ...   -- get the addon name and namespace
 
 -- ******************************** Constants *******************************
