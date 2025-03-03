@@ -92,105 +92,51 @@ local function newReagent(parent, i)
 	return btn
 end
 
-
-local function onUpdate(self, elapsed)
-	if self.refreshReagents then
-		self:RefreshReagents()
-		self.refreshReagents = false
+--[[
+-- **************************************************************************
+-- NAME : onUpdate(self, refresh)
+-- DESC : Update the button text in response to game events
+-- VARS : self = the addon frame,
+        : refresh = refresh the reagents tracke if true
+-- NOTE : Then tell Titan to refresh the button whereever the user placed it
+-- **************************************************************************
+--]]
+local function onUpdate(self, refresh)
+	if refresh == true then
+		addon:RefreshReagents()
 	end
-	self:UpdateButton()
-	TitanPanelButton_UpdateTooltip(self)
-	self:SetScript("OnUpdate", nil)
+	addon:UpdateButton()
+
+	TitanPanelButton_UpdateButton(TITAN_REAGENTTRACKER_ID);
 end
-
--- create a frame to handle all the things
--- this actually seems to be what drives the functions / logic in the addon
--- without it, nothing works
-addon = CreateFrame("Button", "TitanPanelReagentTrackerButton", CreateFrame("Frame", nil, UIParent), "TitanPanelButtonTemplate")
-addon:SetSize(16, 16)
-addon:SetPushedTextOffset(0, 0)
-
--- tell the addon which events from the game it should be aware of
-addon:RegisterEvent("PLAYER_LOGIN")
-addon:RegisterEvent("LEARNED_SPELL_IN_TAB")
-addon:RegisterEvent("MERCHANT_SHOW")
-
--- tell the addon what to do on each event
-addon:SetScript("OnEvent", function(self, event, ...)
-    if event == "PLAYER_LOGIN" then
-		self:RefreshReagents()
-		self:UpdateButton()
-		TitanPanelButton_UpdateTooltip(self)
-        self:RegisterEvent("BAG_UPDATE")
-    elseif event == "MERCHANT_SHOW" then    -- handle a merchant window opening. this is to autobuy reagents
-        self:BuyReagents()
-        self:UpdateButton()
-        TitanPanelButton_UpdateTooltip(self)
-        self:RegisterEvent("BAG_UPDATE")
-	else
-		-- update on next frame to prevent redundant CPU processing from event spamming
-		self.refreshReagents = event == "LEARNED_SPELL_IN_TAB"
-		self:SetScript("OnUpdate", onUpdate)
-		return
-	end
-end)
-
-local text = addon:CreateFontString(nil, nil, "GameFontNormalSmall")
-text:SetPoint("LEFT", 0, 1)
-text:SetText("Reagent Tracker")
-addon:SetFontString(text)
-addon.label = text
-
-
-addon.registry = {
-    id = TITAN_REAGENTTRACKER_ID,
-	--version = GetAddOnMetadata("TitanClassicReagentTracker", "Version"),   -- the the value of Version variable from the .toc
-    version = C_AddOns.GetAddOnMetadata(addon, "Version")                  -- format taken from TitanStater.lua example
-	menuText = "Reagent Tracker",
-	tooltipTitle = "Reagent Tracker Info",
-	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
-	savedVariables = {
-        ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
-	}
-}
-
 
 --[[
 -- **************************************************************************
--- NAME : N/A
--- DESC : create a button for every spell / reagent in the spell array, to be shown in titan panel horizontally
---      : Save these buttons and their settings in titan variables so that they persist across relaunch
---      : also create a list in the possessed array, which we'll use to store reagent information later
--- VARS : parent = the addon, i = button ID
+-- NAME : OnShow(self)
+-- DESC : React to the user placing on Titan or on login/reload
+-- VARS : self = the addon frame,
+-- NOTE : Save some cycles by registering for events only if user is using;
+          Update the font (for label calc);
+		  Then update the plugin for the user
 -- **************************************************************************
 --]]
-local buttons = {}
-for i = 1, #spells do
-    buttons[i] = newReagent(addon, i)
-    -- create variables in the addon.registry so that they can be set later by the user
-    addon.registry.savedVariables["TrackReagent"..i] = (i == 1)
-    addon.registry.savedVariables["BuyReagent"..i] = (i == 1)   -- Without first creating the variables in the addon.registry
-                                                                -- for later use, the variables won't be saved across game reload
-    addon.registry.savedVariables["Reagent"..i.."OneStack"] = (i == 1)
-    addon.registry.savedVariables["Reagent"..i.."TwoStack"] = (i == 1)
-    addon.registry.savedVariables["Reagent"..i.."ThreeStack"] = (i == 1)
-    addon.registry.savedVariables["Reagent"..i.."FourStack"] = (i == 1)
-    addon.registry.savedVariables["Reagent"..i.."FiveStack"] = (i == 1)
-    addon.registry.savedVariables["Reagent"..i.."NoStacks"] = (i == 1)
-possessed[i] = {}
+local function OnShow(self)
+	-- tell the addon which events from the game it should be aware of
+	-- Moved registration of events here to ensure Titan is up and ready
+	-- WoW does not guarentee order of events to addons!
+	self:RegisterEvent("LEARNED_SPELL_IN_TAB")
+	self:RegisterEvent("MERCHANT_SHOW")
+    self:RegisterEvent("BAG_UPDATE")
+
+	-- Handle the label here as it is unlikely to change;
+	-- it is used to calc offset of first reagent
+	UpdateFont()
+	local label = addon.label_default
+	addon.label_fontstr:SetText(label)
+	addon.label_fontstr_width = addon.label_fontstr:GetWidth()
+
+	onUpdate(self, true) -- Now update the plugin for the user
 end
-
-
-local queryTooltip = CreateFrame("GameTooltip", "TitanReagentTrackerTooltip", nil, "GameTooltipTemplate")
-queryTooltip:SetOwner(UIParent, "ANCHOR_NONE")
-queryTooltip:SetScript("OnTooltipSetItem", function(self)
-	if TitanReagentTrackerTooltipTextLeft1:GetText() ~= RETRIEVING_ITEM_INFO then
-		addon:RefreshReagents()
-		addon:UpdateButton()
-		TitanPanelButton_UpdateTooltip(addon)
-	end
-end)
-
 
 --[[
 -- **************************************************************************
@@ -704,6 +650,35 @@ end
 -- this actually seems to be what drives the functions / logic in the addon
 -- without it, nothing works
 addon_frame = CreateFrame("Button", "TitanPanelReagentTrackerButton", CreateFrame("Frame", nil, UIParent), "TitanPanelComboTemplate") 
+-- addon frame scripts
+addon_frame:SetScript("OnShow", function(self)
+	OnShow(self);
+	TitanPanelButton_OnShow(self);
+end)
+
+addon_frame:SetScript("OnHide", function(self)
+	self:UnregisterEvent("LEARNED_SPELL_IN_TAB")
+	self:UnregisterEvent("MERCHANT_SHOW")
+	self:UnregisterEvent("BAG_UPDATE")
+end)
+
+-- tell the addon what to do on each event
+addon_frame:SetScript("OnEvent", function(self, event, ...)
+	if debug then
+		dbg_out(tostring(event))
+	end
+
+    if event == "PLAYER_LOGIN" then
+		-- Wait for OnShow to init events, etc
+    elseif event == "MERCHANT_SHOW" then    -- handle a merchant window opening. this is to autobuy reagents
+        self:BuyReagents()
+		onUpdate(self, false)
+	else
+		-- Covers spells learned and bag updates (for reagent counts)
+		onUpdate(self, true)
+	end
+end)
+
 -- Update the registry so Titan knows what to do
 addon_frame.registry = {
     id = TITAN_REAGENTTRACKER_ID,
