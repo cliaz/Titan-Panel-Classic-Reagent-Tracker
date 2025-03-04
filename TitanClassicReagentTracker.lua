@@ -26,7 +26,7 @@ local addon_frame = {} -- will be set later during 'on load' as the main addon f
 local media = nil -- set at OnShow to take advantage of a Titan lib
 
 -- setting this to true will enable a lot of debug messages being output on the wow chat
-local debug = true -- true false 
+local debug = false -- true false 
 
 -- Get the toon class so we know which reagents to track from spells table
 local playerClass = select(2, UnitClass("player"))
@@ -130,7 +130,6 @@ local function UpdateText()
 	
 	-- The label (spaces) *should* cover the reagents now...
 	if debug then
-		---[[
 		dbg_out("UpdateText"
 		.." "..num_out(addon.font_calc_width)..""
 		.." "..num_out(addon.reagent_width_total)..""
@@ -139,7 +138,6 @@ local function UpdateText()
 		.." "..num_out(TitanPanelReagentTrackerButton:GetWidth())..""
 		.." "..num_out(TitanPanelReagentTrackerButtonText:GetWidth())..""
 		)
-		--]]
 	end
 
 	addon.tracker_text_buff = spaces
@@ -164,8 +162,6 @@ local function newReagent(parent, i)
 
 	local reagent_name = REAGENT_PRE..i
 	local btn = CreateFrame("Button", reagent_name, parent)
---	btn:SetPoint("LEFT", "TitanPanelReagentTrackerButtonText", "LEFT", 0,0) -- relative to the addon or prev tracker
---	btn:SetPoint("LEFT")
 
 	btn.icon = btn:CreateTexture()                      -- create the icon (texture) holder
 	btn.icon:SetSize(16, 16)                            -- expect an icon of this size
@@ -179,16 +175,14 @@ local function newReagent(parent, i)
 	btn.text:SetText("00")          -- Default : no count
 
 	if debug == true then
-		---[[
 		dbg_out("newReagent"
 		.." "..tostring(i)..""
 		.." "..tostring(reagent_name)..""
 		.." "..tostring(btn:IsShown())..""
-		--.." "..num_out(iw)..""
+		--.." "..num_out(iconWidth)..""
 		.." "..btn.icon:GetTexture()..""
 		.." "..btn.text:GetText()..""
 		)
-		--]]
 	end
 
 	return btn
@@ -249,9 +243,9 @@ end
 function addon:RefreshReagents()
     if debug == true then dbg_out("Player knows the following spells:") end
 	for i, buff in ipairs(spells) do
-		local possessed = possessed[i]
-        wipe(possessed) -- clear the array (because we are reusing it), instead of creating a new one each time.
-                        -- this saves some cycles as we don't call the garbage collector as often
+		local possessed_ptr = possessed[i]      -- create a pointer to the possessed table
+        wipe(possessed_ptr) -- clear the array (because we are reusing it), instead of creating a new one each time.
+                            -- this saves some cycles as we don't call the garbage collector as often
 
         -- for every spell, get the reagent info
 		for index, spell in ipairs(buff.spells) do
@@ -266,9 +260,9 @@ function addon:RefreshReagents()
             -- would load all possible ones, and grey out ones that you didn't know yet.
 			if IsSpellKnown(spell) then
                 if debug == true then dbg_out(" - "..spell) end
-                possessed.reagentName = reagentName
-			    possessed.reagentIcon = GetItemIcon(reagentID)
-                possessed.spellIcon = GetSpellTexture(spell)
+                possessed_ptr.reagentName = reagentName
+			    possessed_ptr.reagentIcon = GetItemIcon(reagentID)
+                possessed_ptr.spellIcon = GetSpellTexture(spell)
             end
 		end
 	end
@@ -283,18 +277,16 @@ end
 -- **************************************************************************
 --]]
 function addon:UpdateButton()
----[[
 	local tracking = false
 	local totalWidth = 0
 	local offset = 0
 	local ph = TitanPanelReagentTrackerButton:GetHeight() -- poor man's Titan height check :)
 
-	local reagent_prev = ""
 	local buttonText = _G[RT_BUTTON_NAME .. TITAN_PANEL_TEXT]
-	local reagent_prev = buttonText -- first one only
-	local reagent_begin = "LEFT"    -- overlap by forcing the first one to align left; then switch to right
-	local offset_x = 0  -- use spaces around numbers to get a better width
-	local offset_y = -1 -- Seems a shift down is needed...
+	local reagent_prev = buttonText     -- first one only
+	local reagent_begin = "LEFT"        -- overlap by forcing the first one to align left; then switch to right
+	local offset_x = 0                  -- use spaces around numbers to get a better width
+	local offset_y = -1                 -- Seems a shift down is needed...
 	
 	for i, buff in pairs(possessed) do
 		local button = buttons[i]
@@ -312,21 +304,20 @@ function addon:UpdateButton()
 
 			-- current number of reagents
 			button.text:SetText(" "..GetItemCount(buff.reagentName).." ")
-			local iw = button.icon:GetWidth() -- could assume 16
-			local tw = button.text:GetWidth()
-			btn_width = iw + tw -- for this reagent; will be added to a running total
+			local iconWidth = button.icon:GetWidth() -- could assume 16
+			local textWidth = button.text:GetWidth()
+			btn_width = iconWidth + textWidth -- for this reagent; will be added to a running total
 
 			button:SetSize(btn_width, ph)
 			
 			if debug then
-				---[[
 				dbg_out("UpdateButton SHOW"
 				.." "..tostring(i)..""
 				--.." "..tostring(button:GetName())..""
 				.." '"..tostring(button.text:GetText()).."'"
 				.." "..tostring(button:IsShown())..""
-				--.." "..num_out(iw)..""
-				.." "..num_out(tw)..""
+				--.." "..num_out(iconWidth)..""
+				.." "..num_out(textWidth)..""
 				.." "..num_out(btn_width)..""
 				.." "..num_out(button:GetWidth())..""
 				)
@@ -335,7 +326,6 @@ function addon:UpdateButton()
 				.." "..num_out(offset_x)..""
 				.." "..num_out(offset_y)..""
 				)
-				--]]
 			end
 
 			button:ClearAllPoints()
@@ -489,7 +479,6 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 	-- level 2
 	if _G["L_UIDROPDOWNMENU_MENU_LEVEL"] == 2 then
 		if _G["L_UIDROPDOWNMENU_MENU_VALUE"] == "Autobuy Options" then
---			TitanPanelRightClickMenu_AddTitle(L["TITAN_PANEL_OPTIONS"], _G["L_UIDROPDOWNMENU_MENU_LEVEL"])
 			TitanPanelRightClickMenu_AddTitle("Options", _G["L_UIDROPDOWNMENU_MENU_LEVEL"])
 
             for index, buff in ipairs(possessed) do
@@ -794,6 +783,7 @@ addon_frame:SetScript("OnShow", function(self)
 	TitanPanelButton_OnShow(self);
 end)
 
+-- when the addon is hidden, unregister the events so that it's not using resources
 addon_frame:SetScript("OnHide", function(self)
 	self:UnregisterEvent("LEARNED_SPELL_IN_TAB")
 	self:UnregisterEvent("MERCHANT_SHOW")
@@ -843,8 +833,6 @@ addon_frame.registry = {
 -- Setting the savedVariables here so Titan will store them per toon.
 -- They will be created for a new toon; pulled from the Titan saved vars if already set.
 for i = 1, #spells do
-	--local prev = i - 1                               -- todo: can probably remove this
-    --buttons[i] = newReagent(addon_frame, i, prev)    -- todo: can probably remove this
     buttons[i] = newReagent(addon_frame, i)
     -- create variables in the addon.registry so that they can be set later by the user
     -- to save the variables across game reload
@@ -856,5 +844,5 @@ for i = 1, #spells do
     addon_frame.registry.savedVariables["Reagent"..i.."FourStack"] = false
     addon_frame.registry.savedVariables["Reagent"..i.."FiveStack"] = false
     addon_frame.registry.savedVariables["Reagent"..i.."NoStacks"] = false
-	possessed[i] = {}
+	possessed[i] = {}   -- to prevent possessed[i] from being nil, because wipe(nil) as called by RefreshReagents() will cause an error
 end
