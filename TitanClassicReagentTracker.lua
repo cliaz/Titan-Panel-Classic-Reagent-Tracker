@@ -799,7 +799,7 @@ addon_frame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_LOGIN" then
 		-- Wait for OnShow to init events, etc
     elseif event == "MERCHANT_SHOW" then    -- handle a merchant window opening. this is to autobuy reagents
-        self:BuyReagents()
+        addon:BuyReagents()
 		onUpdate(self, false)
 	else
 		-- Covers spells learned and bag updates (for reagent counts)
