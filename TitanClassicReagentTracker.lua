@@ -830,7 +830,32 @@ addon_frame.registry = {
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
 	icon = "Interface\\AddOns\\TitanClassicReagentTracker\\Tracking",
 	iconWidth = 16,
-	-- without the same in controlVariables, the user is not shown the option to change
+    configTable = {
+        {
+            text = "Show Spell Icons",
+            tooltip = "When checked, shows spell icons instead of reagent icons",
+            var = "ShowSpellIcons",
+            callback = function(self) 
+                TitanPanelReagentTrackerSpellIcon_Toggle()
+                TitanPanelButton_UpdateButton(TITAN_REAGENTTRACKER_ID)
+            end,
+        },
+        {
+            text = "Display On Right Side",
+            tooltip = "When checked, displays the plugin on the right side of the Titan Bar",
+            var = "DisplayOnRightSide",
+            callback = function(self) 
+                TitanPanelReagentTrackerDisplayOnRightSide_Toggle()
+                TitanPanelButton_UpdateButton(TITAN_REAGENTTRACKER_ID)
+            end,
+        },
+    },
+    controlVariables = {
+        ShowIcon = true,
+        ShowLabelText = false,
+        ShowSpellIcons = false,
+        DisplayOnRightSide = false,
+    },
 	savedVariables = {
 		ShowIcon = true,           -- force the plugin icon to be shown
 		ShowLabelText = false,  -- disable showing the text label otherwise it messes with spacing the icon - count pairs
