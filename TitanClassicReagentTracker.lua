@@ -286,7 +286,7 @@ function addon:UpdateButton()
 	local reagent_prev = buttonText     -- first one only
 	local reagent_begin = "LEFT"        -- overlap by forcing the first one to align left; then switch to right
 	local offset_x = 0                  -- use spaces around numbers to get a better width
-	local offset_y = -1                 -- Seems a shift down is needed...
+	local offset_y = 0                 -- Seems a shift down is needed...
 	
 	for i, buff in pairs(possessed) do
 		local button = buttons[i]
