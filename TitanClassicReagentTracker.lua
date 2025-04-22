@@ -776,6 +776,78 @@ function getItemNameItemCountFromBag(bagNumber, slotNumber)
 	end
 end
 
+
+
+--[[
+-- **************************************************************************
+-- NAME : createReagentConfigEntries()
+-- DESC : function to dynamically create the menu entries for tracking reagents in Titan Panels options
+-- **************************************************************************
+--]]
+local function createReagentConfigEntries()
+    local entries = {}
+    for index, buff in ipairs(possessed) do
+        local reagent = buff.reagentName
+        if reagent then
+            table.insert(entries, {
+                text = "Track " .. reagent,
+                tooltip = "When checked, this reagent will be tracked",
+                var = "TrackReagent" .. index,
+                callback = function(self) 
+                    TitanToggleVar(TITAN_REAGENTTRACKER_ID, "TrackReagent" .. index)
+                    addon:UpdateButton()
+                end,
+            })
+        end
+    end
+    return entries
+end
+
+
+-- Function to create purchase option entries for reagents
+--[[
+-- **************************************************************************
+-- NAME : createReagentPurchaseEntries()
+-- DESC : function to dynamically create the menu entries for purchasing reagents in Titan Panels options
+-- **************************************************************************
+--]]
+local function createReagentPurchaseEntries()
+    local entries = {}
+    for i = 1, #spells do
+        local buff = possessed[i]
+        if buff and buff.reagentName then
+            table.insert(entries, {
+                text = buff.reagentName .. " Purchase",
+                tooltip = "Select how many stacks to automatically purchase",
+                var = "Reagent" .. i .. "PurchaseOpt",
+                options = {
+                    { text = "Do not autobuy", value = "NoStacks" },
+                    { text = "1 Stack", value = "OneStack" },
+                    { text = "2 Stacks", value = "TwoStack" },
+                    { text = "3 Stacks", value = "ThreeStack" },
+                    { text = "4 Stacks", value = "FourStack" },
+                    { text = "5 Stacks", value = "FiveStack" },
+                },
+                default = "NoStacks",
+                callback = function(self, opt) 
+                    -- Reset all options
+                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "OneStack", false)
+                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "TwoStack", false)
+                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "ThreeStack", false)
+                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "FourStack", false)
+                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "FiveStack", false)
+                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "NoStacks", false)
+                    
+                    -- Set selected option
+                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. opt, true)
+                end,
+            })
+        end
+    end
+    return entries
+end
+
+
 --
 --=== Move the frame creation here for readability and make use of local functions
 --
@@ -863,6 +935,20 @@ addon_frame.registry = {
         DisplayOnRightSide = false,     -- have the plug be left- or right-aligned on TitanPanel
 	}
 }
+
+
+-- Now add the dynamic reagent entries to the configTable
+local config_entries = createReagentConfigEntries()
+for _, entry in ipairs(config_entries) do
+    table.insert(addon_frame.registry.configTable, entry)
+end
+
+-- Add purchase options
+local purchase_entries = createReagentPurchaseEntries()
+for _, entry in ipairs(purchase_entries) do
+    table.insert(addon_frame.registry.configTable, entry)
+end
+
 
 -- This creates a frame and saved pairs set [i] for every entry in spells for the given toon class.
 -- This covers all the spells with reagents the class can learn at max level. 
