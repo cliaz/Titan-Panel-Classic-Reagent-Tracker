@@ -541,6 +541,7 @@ function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
 	TitanPanelRightClickMenu_AddSpacer()
 
 	TitanPanelRightClickMenu_AddCommand("Hide", TITAN_REAGENTTRACKER_ID, TITAN_PANEL_MENU_FUNC_HIDE);
+    TitanPanelRightClickMenu_AddCommand("Toggle Side", TITAN_REAGENTTRACKER_ID, "TitanPanelReagentTrackerDisplayOnRightSide_Toggle");
     -- /level 1
 
 end
@@ -555,6 +556,18 @@ function TitanPanelReagentTrackerSpellIcon_Toggle()
 	TitanToggleVar(TITAN_REAGENTTRACKER_ID, "ShowSpellIcons")
 	addon:UpdateButton()
 end
+
+--[[
+-- **************************************************************************
+-- NAME : TitanPanelReagentTrackerDisplayOnRightSide_Toggle()
+-- DESC : Toggles between addon being aligned to right or left side of TitanPanel
+-- **************************************************************************
+--]]
+function TitanPanelReagentTrackerDisplayOnRightSide_Toggle()
+	TitanToggleVar(TITAN_REAGENTTRACKER_ID, "DisplayOnRightSide")
+	addon:UpdateButton()
+end
+
 
 
 --[[
@@ -819,9 +832,10 @@ addon_frame.registry = {
 	iconWidth = 16,
 	-- without the same in controlVariables, the user is not shown the option to change
 	savedVariables = {
-        ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
-		ShowIcon = 1,           -- force the plugin icon to be shown
+		ShowIcon = true,           -- force the plugin icon to be shown
 		ShowLabelText = false,  -- disable showing the text label otherwise it messes with spacing the icon - count pairs
+        ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
+        DisplayOnRightSide = false,     -- have the plug be left- or right-aligned on TitanPanel
 	}
 }
 
