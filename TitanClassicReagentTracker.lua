@@ -193,13 +193,14 @@ end
 -- NAME : onUpdate(self, refresh)
 -- DESC : Update the button text in response to game events
 -- VARS : self = the addon frame,
-        : refresh = refresh the reagents tracke if true
+        : refresh = refresh the reagents tracker if true
 -- NOTE : Then tell Titan to refresh the button whereever the user placed it
 -- **************************************************************************
 --]]
 local function onUpdate(self, refresh)
 	if refresh == true then
 		addon:RefreshReagents()
+        addon:RefreshControlVariables()
 	end
 	addon:UpdateButton()
 
@@ -746,8 +747,6 @@ function buyItemFromVendor(itemName, purchaseCount, maxStackSize)
     end
 end
 
-
-
 --[[
 -- **************************************************************************
 -- NAME : getItemNameItemCountFromBag(bagNumber, slotNumber)
@@ -776,75 +775,58 @@ function getItemNameItemCountFromBag(bagNumber, slotNumber)
 	end
 end
 
-
-
 --[[
 -- **************************************************************************
--- NAME : createReagentConfigEntries()
--- DESC : function to dynamically create the menu entries for tracking reagents in Titan Panels options
+-- NAME : buildControlVariables()
+-- DESC : Builds the control variables for the addon
+--      : This is used to dynamically create the controls for the Titan config menu
 -- **************************************************************************
 --]]
-local function createReagentConfigEntries()
-    local entries = {}
-    for index, buff in ipairs(possessed) do
-        local reagent = buff.reagentName
-        if reagent then
-            table.insert(entries, {
-                text = "Track " .. reagent,
-                tooltip = "When checked, this reagent will be tracked",
-                var = "TrackReagent" .. index,
-                callback = function(self) 
-                    TitanToggleVar(TITAN_REAGENTTRACKER_ID, "TrackReagent" .. index)
-                    addon:UpdateButton()
-                end,
-            })
-        end
+
+local lastReagentCount = 0
+local function buildControlVariables()
+    local controls = {}
+
+    -- Static controls
+    controls.ShowIcon = false
+    controls.ShowLabelText = false
+    controls.ShowSpellIcons = true
+    controls.DisplayOnRightSide = true
+
+    -- Dynamic controls for each reagent
+    for i = 1, #spells do
+        controls["TrackReagent"..i] = true
+        controls["Reagent"..i.."OneStack"] = true       -- TODO: probably delete, too messy to have in the config menu
+        controls["Reagent"..i.."TwoStack"] = true       -- TODO: probably delete, too messy to have in the config menu
+        controls["Reagent"..i.."ThreeStack"] = true     -- TODO: probably delete, too messy to have in the config menu
+        controls["Reagent"..i.."FourStack"] = true      -- TODO: probably delete, too messy to have in the config menu
+        controls["Reagent"..i.."FiveStack"] = true      -- TODO: probably delete, too messy to have in the config menu
+        controls["Reagent"..i.."NoStacks"] = true       -- TODO: probably delete, too messy to have in the config menu
     end
-    return entries
+    
+    -- TODO: add some static text saying to access autobuying via the right-click-on-addon menu
+
+
+    return controls
 end
 
-
--- Function to create purchase option entries for reagents
 --[[
 -- **************************************************************************
--- NAME : createReagentPurchaseEntries()
--- DESC : function to dynamically create the menu entries for purchasing reagents in Titan Panels options
+-- NAME : RefreshControlVariables()
+-- DESC : Refreshes the control variables for the addon
+--      : This is used to ensure that the control variables are up to date if the player learns new spells
 -- **************************************************************************
 --]]
-local function createReagentPurchaseEntries()
-    local entries = {}
-    for i = 1, #spells do
-        local buff = possessed[i]
-        if buff and buff.reagentName then
-            table.insert(entries, {
-                text = buff.reagentName .. " Purchase",
-                tooltip = "Select how many stacks to automatically purchase",
-                var = "Reagent" .. i .. "PurchaseOpt",
-                options = {
-                    { text = "Do not autobuy", value = "NoStacks" },
-                    { text = "1 Stack", value = "OneStack" },
-                    { text = "2 Stacks", value = "TwoStack" },
-                    { text = "3 Stacks", value = "ThreeStack" },
-                    { text = "4 Stacks", value = "FourStack" },
-                    { text = "5 Stacks", value = "FiveStack" },
-                },
-                default = "NoStacks",
-                callback = function(self, opt) 
-                    -- Reset all options
-                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "OneStack", false)
-                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "TwoStack", false)
-                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "ThreeStack", false)
-                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "FourStack", false)
-                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "FiveStack", false)
-                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. "NoStacks", false)
-                    
-                    -- Set selected option
-                    TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent" .. i .. opt, true)
-                end,
-            })
-        end
+function addon:RefreshControlVariables()
+    local currentReagentCount = #spells
+
+    if currentReagentCount ~= lastReagentCount then
+        if debug then dbg_out("Refreshing controlVariables: reagent count changed from "..lastReagentCount.." to "..currentReagentCount) end
+        addon_frame.registry.controlVariables = buildControlVariables()
+        lastReagentCount = currentReagentCount
+    else
+        if debug then dbg_out("No change in reagents. Skipping controlVariables refresh.") end
     end
-    return entries
 end
 
 
@@ -921,33 +903,23 @@ addon_frame.registry = {
                 TitanPanelButton_UpdateButton(TITAN_REAGENTTRACKER_ID)
             end,
         },
+        { type = "separator" },
+        { type = "header", text = "Reagent Tracking" },
     },
-    controlVariables = {
-        ShowIcon = true,
-        ShowLabelText = false,
-        ShowSpellIcons = false,
-        DisplayOnRightSide = false,
-    },
+    -- These are used to show or hide 'controls' in the Titan config or Titan right click menu. 
+    -- If true, the control is shown to the user.
+    -- If false, the control is not shown to the user.
+    controlVariables = {},              -- this will be populated with the controls for the addon
 	savedVariables = {
-		ShowIcon = true,           -- force the plugin icon to be shown
-		ShowLabelText = false,  -- disable showing the text label otherwise it messes with spacing the icon - count pairs
-        ShowSpellIcons = false, -- variable used throughout the addon to determine whether to show spell or reagent icons
+		ShowIcon = true,                -- force the plugin icon to be shown
+		ShowLabelText = false,          -- disable showing the text label otherwise it messes with spacing the icon - count pairs
+        ShowSpellIcons = false,         -- variable used throughout the addon to determine whether to show spell or reagent icons
         DisplayOnRightSide = false,     -- have the plug be left- or right-aligned on TitanPanel
 	}
 }
 
-
--- Now add the dynamic reagent entries to the configTable
-local config_entries = createReagentConfigEntries()
-for _, entry in ipairs(config_entries) do
-    table.insert(addon_frame.registry.configTable, entry)
-end
-
--- Add purchase options
-local purchase_entries = createReagentPurchaseEntries()
-for _, entry in ipairs(purchase_entries) do
-    table.insert(addon_frame.registry.configTable, entry)
-end
+-- populate the control variables for the addon
+addon_frame.registry.controlVariables = buildControlVariables()
 
 
 -- This creates a frame and saved pairs set [i] for every entry in spells for the given toon class.
