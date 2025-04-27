@@ -200,7 +200,6 @@ end
 local function onUpdate(self, refresh)
 	if refresh == true then
 		addon:RefreshReagents()
-        addon:RefreshControlVariables()
 	end
 	addon:UpdateButton()
 
@@ -776,55 +775,9 @@ end
 
 --[[
 -- **************************************************************************
--- NAME : buildControlVariables()
--- DESC : Builds the control variables for the addon
---      : This is used to dynamically create the controls for the Titan config menu
--- **************************************************************************
---]]
-local lastReagentCount = 0
-local function buildControlVariables()
-    local controls = {}
-
-    -- Static controls
-    controls.ShowIcon = false
-    controls.ShowLabelText = false
-    controls.ShowSpellIcons = true
-    controls.DisplayOnRightSide = true
-
-    -- Dynamic controls for each reagent
-    for i = 1, #spells do
-        controls["TrackReagent"..i] = true
-    end
-    
-    controls.Category_AutoBuyNote = "Note: Configure auto-buying options via right-click menu on the addon button in Titan Panel."
-
-
-    return controls
-end
-
---[[
--- **************************************************************************
--- NAME : RefreshControlVariables()
--- DESC : Refreshes the control variables for the addon
---      : This is used to ensure that the control variables are up to date if the player learns new spells
--- **************************************************************************
---]]
-function addon:RefreshControlVariables()
-    local currentReagentCount = #spells
-
-    if currentReagentCount ~= lastReagentCount then
-        if debug then dbg_out("Refreshing controlVariables: reagent count changed from "..lastReagentCount.." to "..currentReagentCount) end
-        addon_frame.registry.controlVariables = buildControlVariables()
-        lastReagentCount = currentReagentCount
-    else
-        if debug then dbg_out("No change in reagents. Skipping controlVariables refresh.") end
-    end
-end
-
---[[
--- **************************************************************************
 -- NAME : DebugInfo()
 -- DESC : Show debug info about the addon
+-- NOTE : not fully tested yet
 -- **************************************************************************
 --]]
 function addon:DebugInfo()
@@ -846,15 +799,6 @@ function addon:DebugInfo()
         cv_count = cv_count + 1
     end
     print("- controlVariables (static) entries: "..cv_count)
-
-    -- Optional: if you saved dynamic controls elsewhere
-    if addon.dynamicControlVariables then
-        local dyn_cv_count = 0
-        for k, v in pairs(addon.dynamicControlVariables) do
-            dyn_cv_count = dyn_cv_count + 1
-        end
-        print("- dynamicControlVariables entries: "..dyn_cv_count)
-    end
 
     -- Show player class for debugging
     local className, classFileName = UnitClass("player")
@@ -938,17 +882,19 @@ addon_frame.registry = {
     -- These are used to show or hide 'controls' in the Titan config or Titan right click menu. 
     -- If true, the control is shown to the user.
     -- If false, the control is not shown to the user.
-    controlVariables = {},              -- this will be populated with the controls for the addon
+    controlVariables = {
+        ShowIcon = true
+        ShowLabelText = false
+        DisplayOnRightSide = true
+        -- Category_AutoBuyNote = "Note: Configure more options via right-click menu on the addon button in Titan Panel."
+    },
 	savedVariables = {
 		ShowIcon = true,                -- force the plugin icon to be shown
 		ShowLabelText = false,          -- disable showing the text label otherwise it messes with spacing the icon - count pairs
-        ShowSpellIcons = false,         -- variable used throughout the addon to determine whether to show spell or reagent icons
         DisplayOnRightSide = false,     -- have the plug be left- or right-aligned on TitanPanel
+        ShowSpellIcons = false,         -- variable used throughout the addon to determine whether to show spell or reagent icons
 	}
 }
-
--- populate the control variables for the addon
-addon_frame.registry.controlVariables = buildControlVariables()
 
 
 -- This creates a frame and saved pairs set [i] for every entry in spells for the given toon class.
