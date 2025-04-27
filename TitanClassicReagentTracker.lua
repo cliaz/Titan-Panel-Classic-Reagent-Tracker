@@ -280,7 +280,6 @@ end
 function addon:UpdateButton()
 	local tracking = false
 	local totalWidth = 0
-	local offset = 0
 	local ph = TitanPanelReagentTrackerButton:GetHeight() -- poor man's Titan height check :)
 
 	local buttonText = _G[RT_BUTTON_NAME .. TITAN_PANEL_TEXT]
@@ -884,28 +883,6 @@ addon_frame.registry = {
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
 	icon = "Interface\\AddOns\\TitanClassicReagentTracker\\Tracking",
 	iconWidth = 16,
-    configTable = {
-        {
-            text = "Show Spell Icons",
-            tooltip = "When checked, shows spell icons instead of reagent icons",
-            var = "ShowSpellIcons",
-            callback = function(self) 
-                TitanPanelReagentTrackerSpellIcon_Toggle()
-                TitanPanelButton_UpdateButton(TITAN_REAGENTTRACKER_ID)
-            end,
-        },
-        {
-            text = "Display On Right Side",
-            tooltip = "When checked, displays the plugin on the right side of the Titan Bar",
-            var = "DisplayOnRightSide",
-            callback = function(self) 
-                TitanPanelReagentTrackerDisplayOnRightSide_Toggle()
-                TitanPanelButton_UpdateButton(TITAN_REAGENTTRACKER_ID)
-            end,
-        },
-        { type = "separator" },
-        { type = "header", text = "Reagent Tracking" },
-    },
     -- These are used to show or hide 'controls' in the Titan config or Titan right click menu. 
     -- If true, the control is shown to the user.
     -- If false, the control is not shown to the user.
