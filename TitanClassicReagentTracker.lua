@@ -795,15 +795,9 @@ local function buildControlVariables()
     -- Dynamic controls for each reagent
     for i = 1, #spells do
         controls["TrackReagent"..i] = true
-        controls["Reagent"..i.."OneStack"] = true       -- TODO: probably delete, too messy to have in the config menu
-        controls["Reagent"..i.."TwoStack"] = true       -- TODO: probably delete, too messy to have in the config menu
-        controls["Reagent"..i.."ThreeStack"] = true     -- TODO: probably delete, too messy to have in the config menu
-        controls["Reagent"..i.."FourStack"] = true      -- TODO: probably delete, too messy to have in the config menu
-        controls["Reagent"..i.."FiveStack"] = true      -- TODO: probably delete, too messy to have in the config menu
-        controls["Reagent"..i.."NoStacks"] = true       -- TODO: probably delete, too messy to have in the config menu
     end
     
-    -- TODO: add some static text saying to access autobuying via the right-click-on-addon menu
+    controls.Category_AutoBuyNote = "Note: Configure auto-buying options via right-click menu on the addon button in Titan Panel."
 
 
     return controls
