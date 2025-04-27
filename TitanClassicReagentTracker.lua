@@ -103,7 +103,7 @@ end
 --]]
 local function UpdateText()
 
-	--====
+	--===
 	--[[
 	This section is the key trick / hack allowing the use of children frames.
 	Titan calculates the plugin width for a combo based on the :
@@ -781,7 +781,6 @@ end
 --      : This is used to dynamically create the controls for the Titan config menu
 -- **************************************************************************
 --]]
-
 local lastReagentCount = 0
 local function buildControlVariables()
     local controls = {}
@@ -822,9 +821,68 @@ function addon:RefreshControlVariables()
     end
 end
 
+--[[
+-- **************************************************************************
+-- NAME : DebugInfo()
+-- DESC : Show debug info about the addon
+-- **************************************************************************
+--]]
+function addon:DebugInfo()
+    print("|cffeda55fReagentTracker Debug Info|r")
+
+    -- Show how many spells/reagents loaded
+    print("- Spells table entries: "..tostring(#spells))
+
+    -- Show saved variables count
+    local sv_count = 0
+    for k, v in pairs(addon_frame.registry.savedVariables or {}) do
+        sv_count = sv_count + 1
+    end
+    print("- SavedVariables entries: "..sv_count)
+
+    -- Show control variables count
+    local cv_count = 0
+    for k, v in pairs(addon_frame.registry.controlVariables or {}) do
+        cv_count = cv_count + 1
+    end
+    print("- controlVariables (static) entries: "..cv_count)
+
+    -- Optional: if you saved dynamic controls elsewhere
+    if addon.dynamicControlVariables then
+        local dyn_cv_count = 0
+        for k, v in pairs(addon.dynamicControlVariables) do
+            dyn_cv_count = dyn_cv_count + 1
+        end
+        print("- dynamicControlVariables entries: "..dyn_cv_count)
+    end
+
+    -- Show player class for debugging
+    local className, classFileName = UnitClass("player")
+    print("- Player Class: "..className.." ("..classFileName..")")
+
+    -- Print a final marker
+    print("|cffeda55fDone.|r")
+end
+
 
 --
---=== Move the frame creation here for readability and make use of local functions
+-- === Debug command handling ===
+--
+SLASH_REAGENTTRACKER1 = '/rt'
+
+SlashCmdList["REAGENTTRACKER"] = function(msg)
+    if msg == "debug" then
+        addon:DebugInfo()
+    else
+        print("|cffeda55fReagentTracker|r commands:")
+        print("/rt debug - Show debug info about reagents and controls")
+    end
+end
+
+
+
+--
+-- === Move the frame creation here for readability and make use of local functions ===
 --
 -- create a frame to handle all the things
 -- this actually seems to be what drives the functions / logic in the addon
