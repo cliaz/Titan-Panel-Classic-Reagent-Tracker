@@ -727,7 +727,7 @@ function buyItemFromVendor(itemName, purchaseCount, maxStackSize)
     for index = 1, GetMerchantNumItems() do
         local name, texture, price, quantity = GetMerchantItemInfo(index)
         -- if the merchant's item name matches the name of the item in the shopping cart
-        if name == itemName then
+        if name and name == itemName then
             -- buy the item that we're currently looking at, and the amount
             if debug == true then dbg_out("Vendor has "..itemName..", calling Blizzard API to buy "..purchaseCount) end
 
@@ -884,9 +884,9 @@ addon_frame.registry = {
     -- If true, the control is shown to the user.
     -- If false, the control is not shown to the user.
     controlVariables = {
-        ShowIcon = true
-        ShowLabelText = false
-        DisplayOnRightSide = true
+        ShowIcon = true,
+        ShowLabelText = false,
+        DisplayOnRightSide = true,
         -- Category_AutoBuyNote = "Note: Configure more options via right-click menu on the addon button in Titan Panel."
     },
 	savedVariables = {
