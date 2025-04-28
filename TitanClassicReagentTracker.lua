@@ -250,21 +250,20 @@ function addon:RefreshReagents()
         -- for every spell, get the reagent info
 		for index, spell in ipairs(buff.spells) do
 			local reagentID = buff.reagent
-			local reagentName = GetItemInfo(reagentID)
-            if not reagentName then     -- just in case there are spells in spellData.lua with reagents that aren't in the game (yet)
-				goto continue           -- skip to the next spell. This is lua's version of a continue statement
-			end
+			local reagentName = GetItemInfo(reagentID)=
 
             -- if we know the spell, track the reagent. The way this works is that it only loads reagents for
             -- spells that you know into the tracking table, and as you learn more it shows more. The old implementation
             -- would load all possible ones, and grey out ones that you didn't know yet.
-			if IsSpellKnown(spell) then
-                if debug == true then dbg_out(" - "..spell) end
-                possessed_ptr.reagentName = reagentName
-			    possessed_ptr.reagentIcon = GetItemIcon(reagentID)
-                possessed_ptr.spellIcon = GetSpellTexture(spell)
+			
+            if reagentName then  -- just in case there are spells in spellData.lua with reagents that aren't in the game (yet)
+                if IsSpellKnown(spell) then
+                    if debug == true then dbg_out(" - "..spell) end
+                    possessed_ptr.reagentName = reagentName
+                    possessed_ptr.reagentIcon = GetItemIcon(reagentID)
+                    possessed_ptr.spellIcon = GetSpellTexture(spell)
+                end
             end
-            ::continue::
 		end
 	end
 end
