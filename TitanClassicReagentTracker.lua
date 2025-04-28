@@ -277,7 +277,6 @@ end
 -- **************************************************************************
 --]]
 function addon:UpdateButton()
-	local tracking = false
 	local totalWidth = 0
 	local ph = TitanPanelReagentTrackerButton:GetHeight() -- poor man's Titan height check :)
 
@@ -334,8 +333,6 @@ function addon:UpdateButton()
 			-- next reagent is to the right of this one
 			reagent_begin = "RIGHT" 
 			reagent_prev = _G[REAGENT_PRE..i]
-
-			tracking = true
 		else
 
 			if debug then
@@ -692,38 +689,10 @@ function buyItemFromVendor(itemName, purchaseCount, maxStackSize)
             if purchaseCount <= maxStackSize then           -- buy the partial stack
                 if debug == true then dbg_out("Buying "..purchaseCount..", "..purchaseCount-purchaseCount.." remaining") end
                 BuyMerchantItem(index, purchaseCount)
-                purchaseCount = purchaseCount - purchaseCount       -- for completeness
+                purchaseCount = 0
             end
         end
     end
-end
-
---[[
--- **************************************************************************
--- NAME : getItemNameItemCountFromBag(bagNumber, slotNumber)
--- DESC : gets the item name and count of item for a bag slot
-        : This is used (with other logic) to get a total sum of all of a single reagent in a player's bag
--- VAR  : bagNumber = which bag slot is being checked
---      : slotNumber = which slot (within a bag) is being checked
--- **************************************************************************
---]]
-function getItemNameItemCountFromBag(bagNumber, slotNumber)
-    -- get the count and ID of the item in this bag slot
-    local info = C_Container.GetContainerItemInfo(bagNumber, slotNumber);
-    local itemCount = info and info.stackCount;
-    local itemID = info and info.itemID;
-    local itemName
-
-    -- if an item is actually there, get the name of the item, instead of the ID
-    if info and itemID then
-        itemName = GetItemInfo(itemID)
-    end
-
-	if itemName ~= nil then
-		return itemName, itemCount;
-	else
-		return "", itemCount;
-	end
 end
 
 --[[
