@@ -604,92 +604,46 @@ end
 --]]
 function addon:BuyReagents()
    local shoppingCart = {};    -- list of items to buy
-   local tableIndex = 1 -- because LUA handles tables poorly, deciding that a table/list which has 2 sequential nil values in it
-                        -- has no values after those nils, we have to use a manual counter to correctly store items in a list
 
     -- print list of all reagents that the addon has determined that the player needs, based on spells he/she knows
     if debug == true then
-        dbg_out("Player knows spells requiring the following reagents:");
-        for i, buff in ipairs(possessed) do
-            if buff.reagentName ~= nil then
-                dbg_out(" - "..buff.reagentName);
+        dbg_out("Player knows spells requiring the following reagents:")
+        for _, buff in ipairs(possessed) do
+            if buff.reagentName then
+                dbg_out(" - "..buff.reagentName)
             end
         end
         dbg_out("\n");
     end
 
     -- first up, let's fill our shopping cart
-    -- for every spell we have
+    -- for every spell that we have
     for index, buff in ipairs(possessed) do
-        -- if the option is set to autobuy the reagent for this spell
-        if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack") or TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack") then
-            if debug == true then dbg_out("|cffeda55fReagent = "..buff.reagentName) end
-            local totalCountOfReagent = 0
-            local desiredCountOfReagent = 0
-            local maxStackOfReagent = 0
-            if buff.reagentName ~= nil then
-                -- the 8th variable returned by GetItemInfo() is the itemStackCount; the max an item will stack to
-                -- it should never be nil
-                _, _, _, _, _, _, _, maxStackOfReagent = GetItemInfo(buff.reagentName)    -- get the max a stack of this reagent can be
-                                                                                                -- just so that we buy one stack only
+        local reagentName = buff.reagentName
+        if reagentName then         -- if it's a valid reagent name
+            local maxStack = select(8, GetItemInfo(reagentName))        -- the 8th variable returned by GetItemInfo() is the itemStackCount; the max an item will stack to
+                                                                        -- it should never be nil
+            if debug == true then dbg_out("Reagent = "..buff.reagentName..", max stack = "..maxStack) end
+            
+            -- bugfix for Issue #7 from Nihlolino, where GetItemInfo() returns a nil value for max item stack size, and subsequent
+            -- arithmetic on a nil value fails. This shouldn't need to exist. A reagent can't stack to nil.
+            if maxStack then
+                -- set desiredStacks to 0, aka noStacks. If any of the <count>Stack variables are true, set desiredStacks to that amount and proceed to buying
+                local desiredStacks = 0
+                if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") then desiredStacks = 1 end
+                if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") then desiredStacks = 2 end
+                if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") then desiredStacks = 3 end
+                if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack") then desiredStacks = 4 end
+                if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack") then desiredStacks = 5 end
 
+                if desiredStacks > 0 then
+                    local desiredTotal = desiredStacks * maxStack
+                    local owned = GetItemCount(reagentName)
+                    
+                    if debug == true then dbg_out("Aiming for "..desiredTotal.." "..reagentName..", currently have "..owned) end
 
-                -- bugfix for Issue #7 from Nihlolino, where GetItemInfo() returns a nil value for max item stack size, and subsequent
-                -- arithmetic on a nil value fails. This shouldn't need to exist. A reagent can't stack to nil.
-                if totalCountOfReagent ~= nil and maxStackOfReagent ~= nil then
-                    if debug == true then dbg_out("totalCountOfReagent = "..totalCountOfReagent.." and desiredCountOfReagent = "..desiredCountOfReagent) end
-                    -- cater for buying multiple stacks of reagents
-                    if TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack") then
-                        desiredCountOfReagent = maxStackOfReagent * 1
-                    elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack") then
-                        desiredCountOfReagent = maxStackOfReagent * 2
-                    elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack") then
-                        desiredCountOfReagent = maxStackOfReagent * 3
-                    elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack") then
-                        desiredCountOfReagent = maxStackOfReagent * 4
-                    elseif TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack") then
-                        desiredCountOfReagent = maxStackOfReagent * 5
-                    end
-                end
-
-            end
-
-            if debug == true then
-                if buff.reagentName ~= nil then
-                    dbg_out("Aiming to buy "..desiredCountOfReagent.." of "..buff.reagentName);
-                    dbg_out("Searching for "..buff.reagentName.." in bags");
-                end
-            end
-            -- First up, go add up all the units of this reagent we have
-            -- this is in case they have multiple half used stacks
-            if buff.reagentName ~= nil then
-                -- for every bag slot
-                for bagID = 0, 4 do
-                    -- for even item slot in that bag
-                    for slot = 1, C_Container.GetContainerNumSlots(bagID) do
-                        -- get the item name and quantity of each item in that slot
-                        local bagItemName, bagItemCount = getItemNameItemCountFromBag(bagID, slot);
-
-                        if bagItemName ~= nil and bagItemCount ~= nil then
-                            -- if the ItemName returned from the bag slot matches a reagent we're tracking
-                            if bagItemName == buff.reagentName then
-                                totalCountOfReagent = totalCountOfReagent + bagItemCount    -- add up how many of that reagent we have
-                            end
-                        end
-                    end
-                end
-                if debug == true then dbg_out("Found "..totalCountOfReagent.." "..buff.reagentName.." in bags") end
-                -- enclosing the entire reagent count vs desired reagent comparison in a not-nil if statement for Nihlolino's reported bug
-                -- this shouldn't need to exist. A reagent can't stack to nil.
-                if totalCountOfReagent ~= nil and desiredCountOfReagent ~= nil and maxStackOfReagent ~= nil then
-                    if totalCountOfReagent >= desiredCountOfReagent then
-                        -- we got enough not gonna buy any more
-                        if debug == true then dbg_out("Have enough "..buff.reagentName.." in bags. Not buying any more.\n\n") end
-                    elseif totalCountOfReagent < desiredCountOfReagent then
-                        -- we don't have enough, let's buy some more
-                        shoppingCart[tableIndex] = {buff.reagentName, desiredCountOfReagent-totalCountOfReagent, maxStackOfReagent}
-                        tableIndex = tableIndex+1
-                        if debug == true then dbg_out("Added "..desiredCountOfReagent-totalCountOfReagent.." of "..possessed[index].reagentName.." to cart.") end
+                    if owned < desiredTotal then
+                        table.insert(shoppingCart, {reagentName, desiredTotal - owned, maxStack})
                     end
                 end
             end
@@ -701,15 +655,13 @@ function addon:BuyReagents()
     -- shoppingCart[x][1] = the reagent name
     -- shoppingCart[x][2] = how many reagents to buy
     -- shoppingCart[x][3] = max the reagent will stack to. Required for github issue #9
-
-    -- for each item in shoppingCart
-    for i = 1, table.getn(shoppingCart) do
-        -- pass the Reagent name and the required count to the buying function
-        if shoppingCart[i][1] ~= nil and shoppingCart[i][2] ~= nil and shoppingCart[i][3] ~= nil then
-            if debug == true then dbg_out("Trying to buy "..shoppingCart[i][1]) end
-            buyItemFromVendor(shoppingCart[i][1], shoppingCart[i][2], shoppingCart[i][3])
+    for _, item in ipairs(shoppingCart) do
+        local name, count, maxStack = unpack(item)
+        if name and count and maxStack then
+            if debug == true then dbg_out("Buying "..count.." of "..name) end
+            buyItemFromVendor(name, count, maxStack)
         end
-	end
+    end
 end
 
 --[[
@@ -733,14 +685,15 @@ function buyItemFromVendor(itemName, purchaseCount, maxStackSize)
 
             -- Github issue #9: Blizzard does not support buying of multiple stacks in one API call.
             -- break down the purchasing into <= single stack purchases
-            while (purchaseCount / maxStackSize) > 1 do
+            while (purchaseCount / maxStackSize) > 1 do     -- buy all the full stacks
                 if debug == true then dbg_out("Buying "..maxStackSize..", "..purchaseCount-maxStackSize.." remaining") end
                 BuyMerchantItem(index, maxStackSize)
                 purchaseCount = purchaseCount - maxStackSize
             end
-            if purchaseCount <= maxStackSize then
+            if purchaseCount <= maxStackSize then           -- buy the partial stack
                 if debug == true then dbg_out("Buying "..purchaseCount..", "..purchaseCount-purchaseCount.." remaining") end
                 BuyMerchantItem(index, purchaseCount)
+                purchaseCount = purchaseCount - purchaseCount       -- for completeness
             end
         end
     end
