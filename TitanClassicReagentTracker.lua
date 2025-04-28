@@ -724,7 +724,7 @@ end
 --]]
 function buyItemFromVendor(itemName, purchaseCount, maxStackSize)
     -- check for each of the merchant's items to see if it's what we want
-    for index = 0, GetMerchantNumItems() do
+    for index = 1, GetMerchantNumItems() do
         local name, texture, price, quantity = GetMerchantItemInfo(index)
         -- if the merchant's item name matches the name of the item in the shopping cart
         if name == itemName then
