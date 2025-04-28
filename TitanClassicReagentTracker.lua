@@ -250,7 +250,7 @@ function addon:RefreshReagents()
         -- for every spell, get the reagent info
 		for index, spell in ipairs(buff.spells) do
 			local reagentID = buff.reagent
-			local reagentName = GetItemInfo(reagentID)=
+			local reagentName = GetItemInfo(reagentID)
 
             -- if we know the spell, track the reagent. The way this works is that it only loads reagents for
             -- spells that you know into the tracking table, and as you learn more it shows more. The old implementation
