@@ -252,7 +252,7 @@ function addon:RefreshReagents()
 			local reagentID = buff.reagent
 			local reagentName = GetItemInfo(reagentID)
             if not reagentName then     -- just in case there are spells in spellData.lua with reagents that aren't in the game (yet)
-				return
+				goto continue           -- skip to the next spell. This is lua's version of a continue statement
 			end
 
             -- if we know the spell, track the reagent. The way this works is that it only loads reagents for
@@ -264,6 +264,7 @@ function addon:RefreshReagents()
 			    possessed_ptr.reagentIcon = GetItemIcon(reagentID)
                 possessed_ptr.spellIcon = GetSpellTexture(spell)
             end
+            ::continue::
 		end
 	end
 end
