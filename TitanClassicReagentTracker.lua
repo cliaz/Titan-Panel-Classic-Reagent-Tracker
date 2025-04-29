@@ -745,11 +745,14 @@ end
 SLASH_REAGENTTRACKER1 = '/rt'
 
 SlashCmdList["REAGENTTRACKER"] = function(msg)
-    if msg == "debug" then
+    if msg == "info" then
         addon:DebugInfo()
+    elseif msg == "debug" then
+        TitanToggleVar(TITAN_REAGENTTRACKER_ID, "debug")
     else
         print("|cffeda55fReagentTracker|r commands:")
-        print("/rt debug - Show debug info about reagents and controls")
+        print("/rt info - Show debug info about the addon")
+        print("/rt debug - Enable/disable debug mode")
     end
 end
 
@@ -802,9 +805,9 @@ end)
 -- Update the registry so Titan knows what to do
 addon_frame.registry = {
     id = TITAN_REAGENTTRACKER_ID,
-	version = GetAddOnMetadata(add_on, "Version"),   -- the the value of Version variable from the .toc
+	version = GetAddOnMetadata(add_on, "Version"),  -- the the value of Version variable from the .toc
 	menuText = "Reagent Tracker",
-	buttonTextFunction = UpdateText, -- For Titan update button
+	buttonTextFunction = UpdateText,                -- For Titan update button
 	tooltipTitle = "Reagent Tracker Info",
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
 	icon = "Interface\\AddOns\\TitanClassicReagentTracker\\RT_icon",
@@ -846,5 +849,5 @@ for i = 1, #spells do
     addon_frame.registry.savedVariables["Reagent"..i.."FourStack"] = false
     addon_frame.registry.savedVariables["Reagent"..i.."FiveStack"] = false
     addon_frame.registry.savedVariables["Reagent"..i.."NoStacks"] = false
-	possessed[i] = {}   -- to prevent possessed[i] from being nil, because wipe(nil) as called by RefreshReagents() will cause an error
+	possessed[i] = {}   -- to prevent possessed[i] from being nil, because wipe(nil) (as called by RefreshReagents()) will cause an error
 end
