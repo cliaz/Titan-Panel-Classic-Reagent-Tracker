@@ -283,8 +283,8 @@ function addon:UpdateButton()
 	local buttonText = _G[RT_BUTTON_NAME .. TITAN_PANEL_TEXT]
 	local reagent_prev = buttonText     -- first one only
 	local reagent_begin = "LEFT"        -- overlap by forcing the first one to align left; then switch to right
-	local offset_x = 0                  -- use spaces around numbers to get a better width
-	local offset_y = 0                 -- Seems a shift down is needed...
+	local offset_x = 1                  -- use spaces around numbers to get a better width
+	local offset_y = 1                  -- Seems a shift down is needed...
 	
 	for i, buff in pairs(possessed) do
 		local button = buttons[i]
@@ -329,6 +329,14 @@ function addon:UpdateButton()
 			button:ClearAllPoints()
 			button:SetPoint("LEFT", reagent_prev, reagent_begin, offset_x, offset_y) -- relative to the addon or prev tracker
 			button:Show()
+            
+            -- reset horzizontal offset for the next button to be placed. If we want all the buttons to be more widely spaced,
+            -- keep this as 1. By resetting to 0, we ensure that only the first button is offset from the plugin's icon
+            offset_x = 0
+
+            -- reset vertical offset after the first button, otherwise each subsequent button is pushed down 1 pixel
+            -- relative to the previous one
+            offset_y = 0
 
 			-- next reagent is to the right of this one
 			reagent_begin = "RIGHT" 
@@ -799,7 +807,7 @@ addon_frame.registry = {
 	buttonTextFunction = UpdateText, -- For Titan update button
 	tooltipTitle = "Reagent Tracker Info",
 	tooltipTextFunction = "TitanPanelReagentTracker_GetTooltipText",
-	icon = "Interface\\AddOns\\TitanClassicReagentTracker\\Tracking",
+	icon = "Interface\\AddOns\\TitanClassicReagentTracker\\RT_icon",
 	iconWidth = 16,
     -- These are used to show or hide 'controls' in the Titan config or Titan right click menu. 
     -- If true, the control is shown to the user.
