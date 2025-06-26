@@ -374,6 +374,8 @@ end
 --]]
 function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
     local info
+    local level = TitanPanelRightClickMenu_GetDropdownLevel() or 1
+    local value = TitanPanelRightClickMenu_GetDropdMenuValue()
 
     -- level 3 - Individual reagent purchase options
     if level == 3 then
@@ -773,7 +775,8 @@ addon_frame.registry = {
 -- The spells are grouped in spellData.lua by reagent type, meaning the minimum number of buttons are created.
 -- As the toon learns the spells they become visible in the addon UI.
 --
--- Setting the savedVariables here so Titan will store them per toon.
+-- Setting the savedVariables here so Titan will store them per toon, in
+-- WTF/Account/[Account]/[Server]/[Character]/SavedVariables/TitanClassicReagentTracker.lua
 -- They will be created for a new toon; pulled from the Titan saved vars if already set.
 for i = 1, #spells do
     buttons[i] = newReagent(addon_frame, i)
