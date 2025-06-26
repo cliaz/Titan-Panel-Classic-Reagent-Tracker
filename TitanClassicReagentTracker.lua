@@ -375,178 +375,116 @@ end
 function TitanPanelRightClickMenu_PrepareReagentTrackerMenu()
     local info
 
-    -- level 3
-    if _G["L_UIDROPDOWNMENU_MENU_LEVEL"] == 3 then
+    -- level 3 - Individual reagent purchase options
+    if level == 3 then
         for index, buff in ipairs(possessed) do
-            local info1 = {};
-            local info2 = {};
-            local info3 = {};
-            local info4 = {};
-            local info5 = {};
-            local info6 = {};
             local reagent = buff.reagentName
-            if reagent then
-                if _G["L_UIDROPDOWNMENU_MENU_VALUE"] == reagent.." Options" then    -- make sure it only builds buttons for the right reagent
-                    -- Button for One Stack
-                    info1.text = "Buy 1 stack of "..reagent
-                    info1.value = "Buy 1 stack of "..reagent
-                    info1.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack")
-                    info1.func = function()
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", true);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", false);
+            if reagent and value == reagent.." Options" then
+                local stackOptions = {
+                    {text = "Buy 1 stack of "..reagent, var = "OneStack"},
+                    {text = "Buy 2 stacks of "..reagent, var = "TwoStack"},
+                    {text = "Buy 3 stacks of "..reagent, var = "ThreeStack"},
+                    {text = "Buy 4 stacks of "..reagent, var = "FourStack"},
+                    {text = "Buy 5 stacks of "..reagent, var = "FiveStack"},
+                    {text = "Do not autobuy "..reagent, var = "NoStacks"}
+                }
+                
+                for _, option in ipairs(stackOptions) do
+                    info = {}
+                    info.text = option.text
+                    info.value = option.text
+                    info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index..option.var)
+                    info.func = function()
+                        -- Set all stack options to false first (radio button pattern)
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", false)
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", false)
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", false)
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack", false)
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack", false)
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", false)
+                        -- Then set the selected option to true
+                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index..option.var, true)
                     end
+                    L_UIDropDownMenu_AddButton(info, level)
+                end
+                break -- Found the matching reagent, no need to continue
+            end
+        end
+        return
+    end
 
-                    -- Button for Two Stacks
-                    info2.text = "Buy 2 stacks of "..reagent
-                    info2.value = "Buy 2 stacks of "..reagent
-                    info2.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack")
-                    info2.func = function()
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", true);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", false);
-                    end
 
-                    -- Button for Three Stacks
-                    info3.text = "Buy 3 stacks of "..reagent
-                    info3.value = "Buy 3 stacks of "..reagent
-                    info3.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack")
-                    info3.func = function()
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", true);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", false);
-                    end
-
-                    -- Button for Four Stacks
-                    info4.text = "Buy 4 stacks of "..reagent
-                    info4.value = "Buy 4 stacks of "..reagent
-                    info4.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack")
-                    info4.func = function()
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack", true);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", false);
-                    end
-
-                    -- Button for Five Stacks
-                    info5.text = "Buy 5 stacks of "..reagent
-                    info5.value = "Buy 5 stacks of "..reagent
-                    info5.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack")
-                    info5.func = function()
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack", true);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", false);
-                    end
-
-                    -- Button to not autobuy any stacks
-                    info6.text = "Do not autobuy "..reagent
-                    info6.value = "Do not autobuy "..reagent
-                    info6.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks")
-                    info6.func = function()
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."OneStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."TwoStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."ThreeStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FourStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."FiveStack", false);
-                        TitanSetVar(TITAN_REAGENTTRACKER_ID, "Reagent"..index.."NoStacks", true);
-                    end
-
-                    -- add all buttons
-                    L_UIDropDownMenu_AddButton(info1, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
-                    L_UIDropDownMenu_AddButton(info2, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
-                    L_UIDropDownMenu_AddButton(info3, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
-                    L_UIDropDownMenu_AddButton(info4, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
-                    L_UIDropDownMenu_AddButton(info5, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
-                    L_UIDropDownMenu_AddButton(info6, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
+	-- level 2 - List of reagents with autobuy options
+    if level == 2 then
+        if value == "Autobuy Options" then
+            TitanPanelRightClickMenu_AddTitle("Autobuy Options", level)
+            
+            -- Add each reagent as a submenu option
+            for index, buff in ipairs(possessed) do
+                local reagent = buff.reagentName
+                if reagent then
+                    info = {}
+                    info.text = reagent.." Options"
+                    info.value = reagent.." Options"
+                    info.notCheckable = true
+                    info.hasArrow = 1
+                    info.keepShownOnClick = 1
+                    L_UIDropDownMenu_AddButton(info, level)
                 end
             end
         end
         return
     end
-    -- /level 3
-
-
-	-- level 2
-	if _G["L_UIDROPDOWNMENU_MENU_LEVEL"] == 2 then
-		if _G["L_UIDROPDOWNMENU_MENU_VALUE"] == "Autobuy Options" then
-			TitanPanelRightClickMenu_AddTitle("Options", _G["L_UIDROPDOWNMENU_MENU_LEVEL"])
-
-            for index, buff in ipairs(possessed) do
-                info = {};
-                local reagent = buff.reagentName
-                if reagent then
-                    info.text = reagent.." Options"
-                    info.value = reagent.." Options"
-                    info.notCheckable = true
-                    info.hasArrow = 1;
-                    info.keepShownOnClick = 1
-
-                    L_UIDropDownMenu_AddButton(info, _G["L_UIDROPDOWNMENU_MENU_LEVEL"]);
-
-                end
-            end
-		end
-		return
-	end
     -- /level 2
 
-	-- level 1
-    TitanPanelRightClickMenu_AddTitle(TitanPlugins[TITAN_REAGENTTRACKER_ID].menuText)
+    -- level 1 - Main menu
+    if level == 1 then
+        TitanPanelRightClickMenu_AddTitle(TitanPlugins[TITAN_REAGENTTRACKER_ID].menuText)
 
-    info = {};
-	info.notCheckable = true
-	info.text = "Autobuy Options";
-	info.value = "Autobuy Options";
-	info.hasArrow = 1;
-    L_UIDropDownMenu_AddButton(info);
-    TitanPanelRightClickMenu_AddSpacer();
+        -- Autobuy Options submenu
+        info = {}
+        info.notCheckable = true
+        info.text = "Autobuy Options"
+        info.value = "Autobuy Options"
+        info.hasArrow = 1
+        info.keepShownOnClick = 1
+        L_UIDropDownMenu_AddButton(info)
+        
+        TitanPanelRightClickMenu_AddSpacer()
+        
 
-	-- add menu entry for each possessed spell
-    for index, buff in ipairs(possessed) do
-        info = {};
-		local reagent = buff.reagentName
-		if reagent then
-			info.text = "Track "..reagent
-			info.value = "TrackReagent"..index
-			info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index)
-			info.keepShownOnClick = 1
-			info.func = function()
-                TitanToggleVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index); -- just a note on TitanToggleVar. It 'toggles' the variable
-                                                                                -- between '1' and '', instead of true/false. Can be problematic
-				addon:UpdateButton();
-			end
-            L_UIDropDownMenu_AddButton(info);
-		end
-	end
+        -- add menu entry for each possessed spell, aka individual reagent tracking toggles
+        for index, buff in ipairs(possessed) do
+            local reagent = buff.reagentName
+            if reagent then
+                info = {}
+                info.text = "Track "..reagent
+                info.value = "TrackReagent"..index
+                info.checked = TitanGetVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index)
+                info.keepShownOnClick = 1
+                info.func = function()
+                    TitanToggleVar(TITAN_REAGENTTRACKER_ID, "TrackReagent"..index)
+                    addon:UpdateButton()
+                end
+                L_UIDropDownMenu_AddButton(info)
+            end
+        end
 
     TitanPanelRightClickMenu_AddSpacer()
 
-    -- if we're currently showing spell icons, display the "show reagent icons" text
-	if TitanGetVar(TITAN_REAGENTTRACKER_ID, "ShowSpellIcons") then
-		TitanPanelRightClickMenu_AddCommand("Show Reagent Icons", TITAN_REAGENTTRACKER_ID,"TitanPanelReagentTrackerSpellIcon_Toggle");
-	else    -- if not, display "show spell icons" text
-		TitanPanelRightClickMenu_AddCommand("Show Spell Icons", TITAN_REAGENTTRACKER_ID,"TitanPanelReagentTrackerSpellIcon_Toggle");
-	end
+        -- if we're currently showing spell icons, display the "show reagent icons" text
+        if TitanGetVar(TITAN_REAGENTTRACKER_ID, "ShowSpellIcons") then
+            TitanPanelRightClickMenu_AddCommand("Show Reagent Icons", TITAN_REAGENTTRACKER_ID, "TitanPanelReagentTrackerSpellIcon_Toggle");
+        else    -- if not, display "show spell icons" text
+            TitanPanelRightClickMenu_AddCommand("Show Spell Icons", TITAN_REAGENTTRACKER_ID, "TitanPanelReagentTrackerSpellIcon_Toggle");
+        end
 
-	TitanPanelRightClickMenu_AddSpacer()
+        TitanPanelRightClickMenu_AddSpacer()
 
-	TitanPanelRightClickMenu_AddCommand("Hide", TITAN_REAGENTTRACKER_ID, TITAN_PANEL_MENU_FUNC_HIDE);
-    TitanPanelRightClickMenu_AddCommand("Toggle Side", TITAN_REAGENTTRACKER_ID, "TitanPanelReagentTrackerDisplayOnRightSide_Toggle");
-    -- /level 1
+        -- Standard Titan options
+        TitanPanelRightClickMenu_AddCommand("Hide", TITAN_REAGENTTRACKER_ID, TITAN_PANEL_MENU_FUNC_HIDE)
+        TitanPanelRightClickMenu_AddCommand("Toggle Side", TITAN_REAGENTTRACKER_ID, "TitanPanelReagentTrackerDisplayOnRightSide_Toggle")
+    end
 
 end
 
