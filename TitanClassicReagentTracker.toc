@@ -1,4 +1,4 @@
-## Interface: 11505, 40401
+## Interface: 11507, 40402
 ## Title: Titan Panel Classic [|cffeda55fReagent Tracker|r] |cff00aa004.0.2|r
 ## Author: cliaz (Murd)
 ## Version: 4.0.2
